@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="page-header">
+    <p class="eyebrow">Module</p>
+    <h1>{{ title }}</h1>
+    <p>Overview of {{ module_name|lower }} activity and key operational metrics.</p>
+</section>
+
+<section class="cards-grid">
+    {% for card in cards %}
+    <article class="stat-card">
+        <h3>{{ card.title }}</h3>
+        <div class="stat-value">{{ card.value }}</div>
+        <p>{{ card.description }}</p>
+    </article>
+    {% endfor %}
+</section>
+{% endblock %}

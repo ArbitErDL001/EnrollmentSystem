@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="hero">
+    <div>
+        <p class="eyebrow">Main Dashboard</p>
+        <h1>{{ title }}</h1>
+        <p>Track enrollment operations, academic performance, and institutional reporting from one place.</p>
+    </div>
+</section>
+
+<section class="cards-grid">
+    {% for section in sections %}
+    <a class="module-card" href="{{ section.url }}">
+        <span class="module-label">Module</span>
+        <h3>{{ section.name }}</h3>
+        <p>Open {{ section.name|lower }} dashboard</p>
+    </a>
+    {% endfor %}
+</section>
+{% endblock %}

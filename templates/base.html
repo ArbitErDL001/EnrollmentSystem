@@ -1,0 +1,29 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title|default:"Enrollment System" }}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <a href="{% url 'home' %}">EnrollmentSystem</a>
+        </div>
+        <nav class="nav">
+            <a href="{% url 'home' %}">Home</a>
+            <a href="{% url 'students_home' %}">Students</a>
+            <a href="{% url 'academics_home' %}">Academics</a>
+            <a href="{% url 'enrollments_home' %}">Enrollments</a>
+            <a href="{% url 'finance_home' %}">Finance</a>
+            <a href="{% url 'scheduling_home' %}">Scheduling</a>
+            <a href="{% url 'reports_home' %}">Reports</a>
+        </nav>
+    </header>
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
