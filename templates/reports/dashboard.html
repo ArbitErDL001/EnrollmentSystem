@@ -16,4 +16,12 @@
     </article>
     {% endfor %}
 </section>
+
+<nav aria-label="Report resources">
+    <h2>Report resources</h2>
+    <ul>
+        <li><a href="{% url published_url %}">View published reports</a></li>
+        <li><a href="{% url requests_url %}">View pending requests</a></li>
+    </ul>
+</nav>
 {% endblock %}

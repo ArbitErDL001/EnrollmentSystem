@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="page-header">
+    <p class="eyebrow">Reports</p>
+    <h1>{{ title }}</h1>
+    <p>Review analysis requests that are waiting to be prepared.</p>
+</section>
+
+<p><a href="{% url 'reports_home' %}">Back to reports dashboard</a></p>
+
+{% if requests %}
+<table>
+    <thead>
+        <tr>
+            <th>Report request</th>
+            <th>Requester</th>
+            <th>Submitted</th>
+            <th>Priority</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for report_request in requests %}
+        <tr>
+            <td>{{ report_request.name }}</td>
+            <td>{{ report_request.requester }}</td>
+            <td>{{ report_request.submitted }}</td>
+            <td>{{ report_request.priority }}</td>
+            <td>{{ report_request.status }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>There are no pending report requests.</p>
+{% endif %}
+{% endblock %}

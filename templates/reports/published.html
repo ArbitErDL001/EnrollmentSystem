@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="page-header">
+    <p class="eyebrow">Reports</p>
+    <h1>{{ title }}</h1>
+    <p>Browse reports that are available for the current academic operations.</p>
+</section>
+
+<p><a href="{% url 'reports_home' %}">Back to reports dashboard</a></p>
+
+{% if reports %}
+<table>
+    <thead>
+        <tr>
+            <th>Report</th>
+            <th>Category</th>
+            <th>Period</th>
+            <th>Published</th>
+            <th>Owner</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for report in reports %}
+        <tr>
+            <td>{{ report.name }}</td>
+            <td>{{ report.category }}</td>
+            <td>{{ report.period }}</td>
+            <td>{{ report.published }}</td>
+            <td>{{ report.owner }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No published reports are currently available.</p>
+{% endif %}
+{% endblock %}
