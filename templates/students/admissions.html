@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="page-header">
+    <p class="eyebrow">Students</p>
+    <h1>{{ title }}</h1>
+    <p>Review applications submitted for the current admissions period.</p>
+</section>
+
+<p><a href="{% url 'students_home' %}">Back to student dashboard</a></p>
+
+{% if admissions %}
+<table>
+    <thead>
+        <tr>
+            <th>Applicant</th>
+            <th>Program</th>
+            <th>Submitted</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for admission in admissions %}
+        <tr>
+            <td>{{ admission.applicant }}</td>
+            <td>{{ admission.program }}</td>
+            <td>{{ admission.submitted }}</td>
+            <td>{{ admission.status }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No new admissions are currently available.</p>
+{% endif %}
+{% endblock %}

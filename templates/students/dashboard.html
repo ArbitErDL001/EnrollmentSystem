@@ -16,4 +16,12 @@
     </article>
     {% endfor %}
 </section>
+
+<nav aria-label="Student resources">
+    <h2>Student resources</h2>
+    <ul>
+        <li><a href="{% url directory_url %}">View student directory</a></li>
+        <li><a href="{% url admissions_url %}">View new admissions</a></li>
+    </ul>
+</nav>
 {% endblock %}

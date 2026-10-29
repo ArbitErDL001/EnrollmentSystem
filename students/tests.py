@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.test import TestCase
 from django.urls import reverse
 
@@ -42,14 +43,18 @@ class DashboardAccessTests(TestCase):
 
     def test_dashboard_is_selected_for_each_account_role(self):
         roles = [
-            ('admin', {'is_staff': True, 'is_superuser': True}, 'Administrator Dashboard', True),
-            ('staff', {'is_staff': True}, 'Staff Dashboard', True),
+            ('admin', {'is_staff': True, 'is_superuser': True}, 'Admin Dashboard', True),
+            ('registrar', {'is_staff': True}, 'Registrar Dashboard', True),
             ('student', {}, 'Student Dashboard', False),
         ]
 
         for username, flags, dashboard_title, can_manage in roles:
             with self.subTest(role=username):
                 user = self.user_model.objects.create_user(username=username, password='test-password', **flags)
+                if username == 'registrar':
+                    user.groups.add(Group.objects.get(name='Registrar'))
+                elif username == 'student':
+                    user.groups.add(Group.objects.get(name='Student'))
                 self.client.force_login(user)
 
                 response = self.client.get(reverse('home'))
@@ -91,3 +96,53 @@ class DashboardAccessTests(TestCase):
         response = self.client.get(reverse('admin:index'))
 
         self.assertEqual(response.status_code, 200)
+
+
+class UserRoleAdminTests(TestCase):
+    def setUp(self):
+        self.admin = get_user_model().objects.create_superuser(
+            username='administrator',
+            password='test-password',
+        )
+        self.user = get_user_model().objects.create_user(
+            username='staffmember',
+            password='test-password',
+        )
+        self.client.force_login(self.admin)
+
+    def test_user_change_form_offers_all_roles(self):
+        response = self.client.get(
+            reverse('admin:auth_user_change', args=[self.user.pk])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        for role in ('Admin', 'Registrar', 'Cashier', 'Instructor', 'Student'):
+            with self.subTest(role=role):
+                self.assertContains(response, f'>{role}</option>')
+
+    def test_changing_user_role_updates_group_and_staff_access(self):
+        for role in ('Admin', 'Registrar', 'Cashier', 'Instructor', 'Student'):
+            with self.subTest(role=role):
+                response = self.client.post(
+                    reverse('admin:auth_user_change', args=[self.user.pk]),
+                    {
+                        'username': self.user.username,
+                        'first_name': '',
+                        'last_name': '',
+                        'email': '',
+                        'role': role,
+                        '_save': 'Save',
+                    },
+                )
+
+                self.assertEqual(response.status_code, 302)
+                self.user.refresh_from_db()
+                self.assertEqual(self.user.is_superuser, role == 'Admin')
+                self.assertEqual(
+                    self.user.is_staff,
+                    role in {'Admin', 'Registrar', 'Cashier', 'Instructor'},
+                )
+                self.assertEqual(
+                    list(self.user.groups.values_list('name', flat=True)),
+                    [role],
+                )
