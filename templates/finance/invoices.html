@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="page-header">
+    <p class="eyebrow">Finance</p>
+    <h1>{{ title }}</h1>
+    <p>Review invoices that have not yet been paid.</p>
+</section>
+
+<p><a href="{% url 'finance_home' %}">Back to finance dashboard</a></p>
+
+{% if invoices %}
+<table>
+    <thead>
+        <tr>
+            <th>Student</th>
+            <th>Invoice</th>
+            <th>Amount</th>
+            <th>Due date</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for invoice in invoices %}
+        <tr>
+            <td>{{ invoice.student }}</td>
+            <td>{{ invoice.invoice }}</td>
+            <td>{{ invoice.amount }}</td>
+            <td>{{ invoice.due_date }}</td>
+            <td>{{ invoice.status }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>There are no outstanding invoices.</p>
+{% endif %}
+{% endblock %}

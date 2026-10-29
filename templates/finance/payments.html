@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="page-header">
+    <p class="eyebrow">Finance</p>
+    <h1>{{ title }}</h1>
+    <p>Review tuition and fee payments received from students.</p>
+</section>
+
+<p><a href="{% url 'finance_home' %}">Back to finance dashboard</a></p>
+
+{% if payments %}
+<table>
+    <thead>
+        <tr>
+            <th>Student</th>
+            <th>Reference</th>
+            <th>Amount</th>
+            <th>Payment date</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for payment in payments %}
+        <tr>
+            <td>{{ payment.student }}</td>
+            <td>{{ payment.reference }}</td>
+            <td>{{ payment.amount }}</td>
+            <td>{{ payment.date }}</td>
+            <td>{{ payment.status }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No payment records are currently available.</p>
+{% endif %}
+{% endblock %}

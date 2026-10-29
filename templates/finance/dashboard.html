@@ -16,4 +16,12 @@
     </article>
     {% endfor %}
 </section>
+
+<nav aria-label="Finance resources">
+    <h2>Finance resources</h2>
+    <ul>
+        <li><a href="{% url payments_url %}">View payment records</a></li>
+        <li><a href="{% url invoices_url %}">View outstanding invoices</a></li>
+    </ul>
+</nav>
 {% endblock %}
