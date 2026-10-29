@@ -3,11 +3,31 @@
 {% block content %}
 <section class="hero">
     <div>
-        <p class="eyebrow">Main Dashboard</p>
-        <h1>{{ title }}</h1>
-        <p>Track enrollment operations, academic performance, and institutional reporting from one place.</p>
+        <p class="eyebrow">{{ dashboard_role }} Dashboard</p>
+        <h1>{{ dashboard_role }} Dashboard</h1>
+        {% if user.is_superuser %}
+        <p>Review and manage enrollment operations, academic data, and institutional reporting.</p>
+        {% elif user.is_staff %}
+        <p>Review student and institutional information, and edit records allowed by your staff permissions.</p>
+        {% else %}
+        <p>View student and institutional information. Your account has read-only access.</p>
+        {% endif %}
     </div>
 </section>
+
+{% if user.is_staff %}
+<section class="page-header">
+    <h2>{% if user.is_superuser %}Administrator tools{% else %}Staff tools{% endif %}</h2>
+    <p>
+        {% if user.is_superuser %}
+        Manage available records and user access from the administration site.
+        {% else %}
+        Edit records in the administration site according to your assigned permissions.
+        {% endif %}
+    </p>
+    <a href="{% url 'admin:index' %}">Open data management</a>
+</section>
+{% endif %}
 
 <section class="cards-grid">
     {% for section in sections %}

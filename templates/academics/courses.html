@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="page-header">
+    <p class="eyebrow">Academics</p>
+    <h1>{{ title }}</h1>
+    <p>Browse the courses currently available in the academic catalog.</p>
+</section>
+
+<p><a href="{% url 'academics_home' %}">Back to academic dashboard</a></p>
+
+{% if courses %}
+<table>
+    <thead>
+        <tr>
+            <th>Code</th>
+            <th>Course</th>
+            <th>Department</th>
+            <th>Units</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for course in courses %}
+        <tr>
+            <td>{{ course.code }}</td>
+            <td>{{ course.name }}</td>
+            <td>{{ course.department }}</td>
+            <td>{{ course.units }}</td>
+            <td>{{ course.status }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No courses are currently available.</p>
+{% endif %}
+{% endblock %}

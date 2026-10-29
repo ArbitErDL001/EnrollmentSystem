@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="page-header">
+    <p class="eyebrow">Account access</p>
+    <h1>Log in</h1>
+    <p>Sign in to open your student, staff, or administrator dashboard.</p>
+</section>
+
+<form class="table-card" method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <p>
+        <label for="{{ form.username.id_for_label }}">Username</label>
+        {{ form.username }}
+        {{ form.username.errors }}
+    </p>
+    <p>
+        <label for="{{ form.password.id_for_label }}">Password</label>
+        {{ form.password }}
+        {{ form.password.errors }}
+    </p>
+    <input type="hidden" name="next" value="{{ next }}">
+    <button type="submit">Log in</button>
+</form>
+{% endblock %}

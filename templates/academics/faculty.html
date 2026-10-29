@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="page-header">
+    <p class="eyebrow">Academics</p>
+    <h1>{{ title }}</h1>
+    <p>View faculty members and their academic areas.</p>
+</section>
+
+<p><a href="{% url 'academics_home' %}">Back to academic dashboard</a></p>
+
+{% if faculty_members %}
+<table>
+    <thead>
+        <tr>
+            <th>Faculty member</th>
+            <th>Department</th>
+            <th>Specialization</th>
+            <th>Employment</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for member in faculty_members %}
+        <tr>
+            <td>{{ member.name }}</td>
+            <td>{{ member.department }}</td>
+            <td>{{ member.specialization }}</td>
+            <td>{{ member.status }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No faculty members are currently available.</p>
+{% endif %}
+{% endblock %}
