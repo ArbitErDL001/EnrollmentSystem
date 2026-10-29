@@ -16,4 +16,12 @@
     </article>
     {% endfor %}
 </section>
+
+<nav aria-label="Scheduling resources">
+    <h2>Scheduling resources</h2>
+    <ul>
+        <li><a href="{% url classes_url %}">View class schedule</a></li>
+        <li><a href="{% url rooms_url %}">View room availability</a></li>
+    </ul>
+</nav>
 {% endblock %}

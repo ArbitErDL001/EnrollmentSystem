@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="page-header">
+    <p class="eyebrow">Scheduling</p>
+    <h1>{{ title }}</h1>
+    <p>Review confirmed classes, locations, and instructors for the current term.</p>
+</section>
+
+<p><a href="{% url 'scheduling_home' %}">Back to scheduling dashboard</a></p>
+
+{% if classes %}
+<table>
+    <thead>
+        <tr>
+            <th>Course</th>
+            <th>Section</th>
+            <th>Day</th>
+            <th>Time</th>
+            <th>Room</th>
+            <th>Instructor</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for class in classes %}
+        <tr>
+            <td>{{ class.course }}</td>
+            <td>{{ class.section }}</td>
+            <td>{{ class.day }}</td>
+            <td>{{ class.time }}</td>
+            <td>{{ class.room }}</td>
+            <td>{{ class.instructor }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No scheduled classes are currently available.</p>
+{% endif %}
+{% endblock %}

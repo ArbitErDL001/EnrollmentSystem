@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="page-header">
+    <p class="eyebrow">Scheduling</p>
+    <h1>{{ title }}</h1>
+    <p>Review room capacity and current booking information.</p>
+</section>
+
+<p><a href="{% url 'scheduling_home' %}">Back to scheduling dashboard</a></p>
+
+{% if rooms %}
+<table>
+    <thead>
+        <tr>
+            <th>Room</th>
+            <th>Building</th>
+            <th>Capacity</th>
+            <th>Availability</th>
+            <th>Next booking</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for room in rooms %}
+        <tr>
+            <td>{{ room.room }}</td>
+            <td>{{ room.building }}</td>
+            <td>{{ room.capacity }}</td>
+            <td>{{ room.availability }}</td>
+            <td>{{ room.next_booking }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No room information is currently available.</p>
+{% endif %}
+{% endblock %}
