@@ -16,4 +16,12 @@
     </article>
     {% endfor %}
 </section>
+
+<nav aria-label="Enrollment resources">
+    <h2>Enrollment resources</h2>
+    <ul>
+        <li><a href="{% url records_url %}">View current enrollments</a></li>
+        <li><a href="{% url requests_url %}">Review pending requests</a></li>
+    </ul>
+</nav>
 {% endblock %}

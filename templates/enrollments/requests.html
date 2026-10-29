@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="page-header">
+    <p class="eyebrow">Enrollments</p>
+    <h1>{{ title }}</h1>
+    <p>Review enrollment requests that still need a decision.</p>
+</section>
+
+<p><a href="{% url 'enrollments_home' %}">Back to enrollment dashboard</a></p>
+
+{% if requests %}
+<table>
+    <thead>
+        <tr>
+            <th>Student</th>
+            <th>Requested course</th>
+            <th>Submitted</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for enrollment_request in requests %}
+        <tr>
+            <td>{{ enrollment_request.student }}</td>
+            <td>{{ enrollment_request.course }}</td>
+            <td>{{ enrollment_request.submitted }}</td>
+            <td>{{ enrollment_request.status }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>There are no pending enrollment requests.</p>
+{% endif %}
+{% endblock %}

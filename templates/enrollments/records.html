@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="page-header">
+    <p class="eyebrow">Enrollments</p>
+    <h1>{{ title }}</h1>
+    <p>Review students with active enrollment records.</p>
+</section>
+
+<p><a href="{% url 'enrollments_home' %}">Back to enrollment dashboard</a></p>
+
+{% if records %}
+<table>
+    <thead>
+        <tr>
+            <th>Student</th>
+            <th>Course</th>
+            <th>Term</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for record in records %}
+        <tr>
+            <td>{{ record.student }}</td>
+            <td>{{ record.course }}</td>
+            <td>{{ record.term }}</td>
+            <td>{{ record.status }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No current enrollment records are available.</p>
+{% endif %}
+{% endblock %}
