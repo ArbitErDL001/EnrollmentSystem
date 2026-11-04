@@ -1,35 +1,111 @@
-{% extends 'base.html' %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111314">
+    <title>Create account | Palawan State University</title>
+    <link rel="manifest" href="{% static 'site.webmanifest' %}">
+    <link rel="icon" href="{% static 'images/psu-app-icon.svg' %}" type="image/svg+xml">
+    <script src="{% static 'js/workspace-entry.js' %}" defer></script>
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+</head>
+<body class="login-page registration-page">
+    <div class="login-backdrop" aria-hidden="true">
+        <div class="login-mosaic">
+            {% for column in "123456" %}
+            <div class="mosaic-column">
+                <span class="mosaic-tile"></span>
+                <span class="mosaic-tile"></span>
+                <span class="mosaic-tile"></span>
+                <span class="mosaic-tile"></span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 
-{% block content %}
-<section class="page-header">
-    <p class="eyebrow">Account access</p>
-    <h1>Create an account</h1>
-    <p>Register for a student account to access the enrollment system.</p>
-</section>
+    <main class="login-layout registration-layout">
+        <section class="login-story" aria-label="Palawan State University">
+            <a class="login-brand" href="{% url 'login' %}" aria-label="Palawan State University sign in">
+                <span class="login-brand-mark">PSU</span>
+                <span><strong>Palawan State University</strong><small>ENROLLMENT SYSTEM</small></span>
+            </a>
+            <div class="login-welcome">
+                <p class="login-eyebrow">Start your journey</p>
+                <h1>Make your next chapter count.</h1>
+                <p>Create your student account to access enrollment, class schedules, and campus services.</p>
+            </div>
+            <p class="login-campus-note"><span class="login-status-dot"></span> Official university enrollment portal</p>
+        </section>
 
-<form class="table-card" method="post">
-    {% csrf_token %}
-    {{ form.non_field_errors }}
-    <p>
-        <label for="{{ form.username.id_for_label }}">Username</label>
-        {{ form.username }}
-        {{ form.username.help_text }}
-        {{ form.username.errors }}
-    </p>
-    <p>
-        <label for="{{ form.password1.id_for_label }}">Password</label>
-        {{ form.password1 }}
-        {{ form.password1.help_text }}
-        {{ form.password1.errors }}
-    </p>
-    <p>
-        <label for="{{ form.password2.id_for_label }}">Confirm password</label>
-        {{ form.password2 }}
-        {{ form.password2.help_text }}
-        {{ form.password2.errors }}
-    </p>
-    <button type="submit">Create account</button>
-</form>
+        <section class="login-panel registration-panel" aria-labelledby="registration-title">
+            <div class="login-panel-heading">
+                <span class="login-mobile-mark" aria-hidden="true">PSU</span>
+                <p class="login-eyebrow">Student registration</p>
+                <h2 id="registration-title">Create an account</h2>
+                <p>Complete your account and student details below.</p>
+            </div>
 
-<p>Already have an account? <a href="{% url 'login' %}">Log in</a></p>
-{% endblock %}
+            <form class="login-form registration-form" method="post">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                <div class="login-error registration-wide" role="alert">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <fieldset class="registration-section registration-wide">
+                    <legend><span>01</span> Account details</legend>
+                    <div class="registration-fields">
+                        {% for field in form %}
+                        {% if field.name == 'username' or field.name == 'first_name' or field.name == 'last_name' or field.name == 'email' or field.name == 'password1' or field.name == 'password2' %}
+                        <div class="login-field{% if field.name == 'password1' or field.name == 'password2' %} registration-field-wide{% endif %}">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {% if field.name == 'password1' or field.name == 'password2' %}
+                            <div class="password-field">
+                            {{ field }}
+                                <button class="password-toggle" type="button" data-password-toggle="{{ field.id_for_label }}"
+                                        aria-label="Show {{ field.label|lower }}" aria-pressed="false">Show</button>
+                            </div>
+                            {% else %}
+                            {{ field }}
+                            {% endif %}
+                            {% if field.name == 'password1' and field.help_text %}
+                            <details class="registration-help"><summary>Password requirements</summary>{{ field.help_text|safe }}</details>
+                            {% elif field.help_text %}
+                            <div class="registration-help">{{ field.help_text|safe }}</div>
+                            {% endif %}
+                            {% if field.errors %}<div class="login-error" role="alert">{{ field.errors }}</div>{% endif %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </fieldset>
+
+                <fieldset class="registration-section registration-wide">
+                    <legend><span>02</span> Student details</legend>
+                    <div class="registration-fields">
+                        {% for field in form %}
+                        {% if field.name == 'phone' or field.name == 'address' or field.name == 'date_of_birth' or field.name == 'program' or field.name == 'year_level' %}
+                        <div class="login-field{% if field.name == 'address' %} registration-field-wide{% endif %}">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}<div class="registration-help">{{ field.help_text|safe }}</div>{% endif %}
+                            {% if field.errors %}<div class="login-error" role="alert">{{ field.errors }}</div>{% endif %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </fieldset>
+                <button class="login-submit registration-wide" type="submit">Create student account <span aria-hidden="true">→</span></button>
+            </form>
+
+            <p class="login-register">Already have an account? <a href="{% url 'login' %}">Log in</a></p>
+            <p class="login-secure"><span aria-hidden="true">◆</span> Your information is protected by secure, role-based access</p>
+        </section>
+    </main>
+
+    <footer class="login-footer"><span>Palawan State University</span><span>Enrollment System</span></footer>
+    <script src="{% static 'js/password-toggle.js' %}" defer></script>
+    <script src="{% static 'js/pwa.js' %}" defer></script>
+</body>
+</html>

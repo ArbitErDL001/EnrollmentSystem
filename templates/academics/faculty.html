@@ -4,7 +4,7 @@
 <section class="page-header">
     <p class="eyebrow">Academics</p>
     <h1>{{ title }}</h1>
-    <p>View faculty members and their academic areas.</p>
+    <p>Instructors with assigned class offerings.</p>
 </section>
 
 <p><a href="{% url 'academics_home' %}">Back to academic dashboard</a></p>
@@ -14,18 +14,16 @@
     <thead>
         <tr>
             <th>Faculty member</th>
-            <th>Department</th>
-            <th>Specialization</th>
-            <th>Employment</th>
+            <th>Email</th>
+            <th>Assigned offerings</th>
         </tr>
     </thead>
     <tbody>
         {% for member in faculty_members %}
         <tr>
-            <td>{{ member.name }}</td>
-            <td>{{ member.department }}</td>
-            <td>{{ member.specialization }}</td>
-            <td>{{ member.status }}</td>
+            <td>{{ member.get_full_name|default:member.username }}</td>
+            <td>{{ member.email }}</td>
+            <td>{{ member.teaching_offerings.count }}</td>
         </tr>
         {% endfor %}
     </tbody>

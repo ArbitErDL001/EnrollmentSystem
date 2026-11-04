@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="page-header">
+    <p class="eyebrow">Enrollment</p>
+    <h1>{{ title }}</h1>
+    <p>Select classes offered for your program and year level. Prerequisites, duplicate subjects, seat capacity, and time conflicts are checked before enrollment.</p>
+</section>
+<form method="get" class="table-card">
+    <label for="term">Semester / term</label>
+    <select name="term" id="term">
+        {% for available_term in terms %}<option value="{{ available_term }}" {% if available_term == term %}selected{% endif %}>{{ available_term }}</option>{% endfor %}
+    </select>
+    <button type="submit">Show classes</button>
+</form>
+<div class="table-card">
+    <table>
+        <thead><tr><th>Subject</th><th>Units</th><th>Section</th><th>Days / time</th><th>Room</th><th>Instructor</th><th>Seats</th><th>Enroll</th></tr></thead>
+        <tbody>
+        {% for offering in offerings %}
+            <tr>
+                <td>{{ offering.curriculum_entry.subject.code }} - {{ offering.curriculum_entry.subject.name }}</td>
+                <td>{{ offering.curriculum_entry.subject.units }}</td><td>{{ offering.section }}</td>
+                <td>{{ offering.meeting_days }} {{ offering.start_time }}-{{ offering.end_time }}</td>
+                <td>{{ offering.room }}</td><td>{{ offering.instructor.get_full_name|default:offering.instructor.username }}</td>
+                <td>{{ offering.enrollments.count }}/{{ offering.capacity }}</td>
+                <td><form method="post">{% csrf_token %}<input type="hidden" name="term" value="{{ term }}"><input type="hidden" name="offering" value="{{ offering.pk }}"><button type="submit">Enroll</button></form></td>
+            </tr>
+        {% empty %}<tr><td colspan="8">No open class offerings for this term and curriculum.</td></tr>{% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,7 +1,28 @@
+from pathlib import Path
+
+from django.conf import settings
+from django.contrib.auth import login
 from django.contrib import messages
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import Group
+from django.db import transaction
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
+from django.views.decorators.http import require_GET
+
+from students.forms import StudentRegistrationForm
+from students.models import StudentProfile
+
+
+@require_GET
+def service_worker(request):
+    worker_path = Path(settings.BASE_DIR, 'static', 'js', 'service-worker.js')
+    response = HttpResponse(
+        worker_path.read_text(encoding='utf-8'),
+        content_type='application/javascript',
+    )
+    response['Service-Worker-Allowed'] = '/'
+    response['Cache-Control'] = 'no-cache'
+    return response
 
 
 def register(request):
@@ -9,14 +30,26 @@ def register(request):
         return redirect('home')
 
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = StudentRegistrationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            student_group, _ = Group.objects.get_or_create(name='Student')
-            user.groups.add(student_group)
-            messages.success(request, 'Your account was created. You can now log in.')
-            return redirect('login')
+            with transaction.atomic():
+                user = form.save()
+                user.groups.add(Group.objects.get(name='Student'))
+                StudentProfile.objects.create(
+                    user=user,
+                    phone=form.cleaned_data['phone'],
+                    address=form.cleaned_data['address'],
+                    date_of_birth=form.cleaned_data['date_of_birth'],
+                    program=form.cleaned_data['program'],
+                    year_level=form.cleaned_data['year_level'],
+                )
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            messages.success(
+                request,
+                f'Your account was created. Student ID: {user.student_profile.student_id}. Welcome to your overview.',
+            )
+            return redirect('home')
     else:
-        form = UserCreationForm()
+        form = StudentRegistrationForm()
 
     return render(request, 'registration/register.html', {'form': form})

@@ -13,15 +13,28 @@
         <h3>{{ card.title }}</h3>
         <div class="stat-value">{{ card.value }}</div>
         <p>{{ card.description }}</p>
+        {% include 'includes/stat_card_chart.html' %}
     </article>
     {% endfor %}
 </section>
 
-<nav aria-label="Finance resources">
-    <h2>Finance resources</h2>
-    <ul>
-        <li><a href="{% url payments_url %}">View payment records</a></li>
-        <li><a href="{% url invoices_url %}">View outstanding invoices</a></li>
-    </ul>
-</nav>
+<section class="resource-panel" aria-labelledby="finance-resources-title">
+    <div class="resource-heading">
+        <div>
+            <p class="eyebrow">Quick links</p>
+            <h2 id="finance-resources-title">Finance services</h2>
+            <p>Review assessments, balances, and payment activity.</p>
+        </div>
+    </div>
+    <div class="resource-grid">
+        {% if can_manage %}
+        <a class="resource-tile" href="{% url payments_url %}">
+            <span class="resource-icon">₱</span><span><strong>Payment records</strong><small>Record and review student payments</small></span><span class="resource-arrow">→</span>
+        </a>
+        {% endif %}
+        <a class="resource-tile" href="{% url invoices_url %}">
+            <span class="resource-icon">▤</span><span><strong>Student assessments</strong><small>View charges, payments, and outstanding balances</small></span><span class="resource-arrow">→</span>
+        </a>
+    </div>
+</section>
 {% endblock %}

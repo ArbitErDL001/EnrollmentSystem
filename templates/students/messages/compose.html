@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="page-header">
+    <p class="eyebrow">Account messages</p>
+    <h1>New message</h1>
+</section>
+<form class="table-card message-compose" method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {{ form.as_p }}
+    <button type="submit">Send message</button>
+    <a href="{% url 'message_inbox' %}">Cancel</a>
+</form>
+{% endblock %}

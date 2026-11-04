@@ -1,28 +1,91 @@
-{% extends 'base.html' %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111314">
+    <title>Sign in | Palawan State University</title>
+    <link rel="manifest" href="{% static 'site.webmanifest' %}">
+    <link rel="icon" href="{% static 'images/psu-app-icon.svg' %}" type="image/svg+xml">
+    <script src="{% static 'js/theme-toggle.js' %}"></script>
+    <script src="{% static 'js/workspace-entry.js' %}" defer></script>
+    <link rel="stylesheet" href="{% static 'css/login.css' %}?v=20261031-theme-readability">
+</head>
+<body class="login-page">
+    <div class="login-backdrop" aria-hidden="true">
+        <div class="login-mosaic">
+            {% for column in "123456" %}
+            <div class="mosaic-column">
+                <span class="mosaic-tile"></span>
+                <span class="mosaic-tile"></span>
+                <span class="mosaic-tile"></span>
+                <span class="mosaic-tile"></span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 
-{% block content %}
-<section class="page-header">
-    <p class="eyebrow">Account access</p>
-    <h1>Log in</h1>
-    <p>Sign in to open your student, staff, or administrator dashboard.</p>
-</section>
+    <main class="login-layout">
+        <section class="login-story" aria-label="Palawan State University">
+            <a class="login-brand" href="{% url 'login' %}" aria-label="Palawan State University sign in">
+                <span class="login-brand-mark">PSU</span>
+                <span><strong>Palawan State University</strong><small>ENROLLMENT SYSTEM</small></span>
+            </a>
+            <div class="login-welcome">
+                <p class="login-eyebrow">Learn. Lead. Serve.</p>
+                <h1>Your academic journey starts here.</h1>
+                <p>Access enrollment, class schedules, student records, and campus services in one place.</p>
+            </div>
+            <p class="login-campus-note"><span class="login-status-dot"></span> Official university enrollment portal</p>
+        </section>
 
-<form class="table-card" method="post">
-    {% csrf_token %}
-    {{ form.non_field_errors }}
-    <p>
-        <label for="{{ form.username.id_for_label }}">Username</label>
-        {{ form.username }}
-        {{ form.username.errors }}
-    </p>
-    <p>
-        <label for="{{ form.password.id_for_label }}">Password</label>
-        {{ form.password }}
-        {{ form.password.errors }}
-    </p>
-    <input type="hidden" name="next" value="{{ next }}">
-    <button type="submit">Log in</button>
-</form>
+        <section class="login-panel" aria-labelledby="login-title">
+            <button class="login-theme-toggle" type="button" data-theme-toggle aria-label="Switch to light mode" aria-pressed="false">☀ Light</button>
+            <div class="login-panel-heading">
+                <span class="login-mobile-mark" aria-hidden="true">PSU</span>
+                <p class="login-eyebrow">Welcome back</p>
+                <h2 id="login-title">Log in to your account</h2>
+                <p>Use your university account to continue.</p>
+            </div>
 
-<p>Need an account? <a href="{% url 'register' %}">Create one</a></p>
-{% endblock %}
+            <form class="login-form" method="post">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                <div class="login-error" role="alert">{{ form.non_field_errors }}</div>
+                {% endif %}
+                {% if form.username.errors %}
+                <div class="login-error" role="alert">{{ form.username.errors }}</div>
+                {% endif %}
+                {% if form.password.errors %}
+                <div class="login-error" role="alert">{{ form.password.errors }}</div>
+                {% endif %}
+                <div class="login-field">
+                    <label for="{{ form.username.id_for_label }}">Username</label>
+                    <input type="text" name="{{ form.username.html_name }}" id="{{ form.username.id_for_label }}"
+                           value="{{ form.username.value|default_if_none:'' }}" autocomplete="username"
+                           autocapitalize="none" spellcheck="false" required autofocus>
+                </div>
+                <div class="login-field">
+                    <label for="{{ form.password.id_for_label }}">Password</label>
+                    <div class="password-field">
+                        <input type="password" name="{{ form.password.html_name }}" id="{{ form.password.id_for_label }}"
+                               autocomplete="current-password" required>
+                        <button class="password-toggle" type="button" data-password-toggle="{{ form.password.id_for_label }}"
+                                aria-label="Show password" aria-pressed="false">Show</button>
+                    </div>
+                </div>
+                <input type="hidden" name="next" value="{{ next }}">
+                <button class="login-submit" type="submit">Log in <span aria-hidden="true">→</span></button>
+            </form>
+
+            <p class="login-register">New to the system? <a href="{% url 'register' %}">Register as a student</a></p>
+            <p class="login-secure"><span aria-hidden="true">◆</span> Secure access based on your assigned role</p>
+        </section>
+    </main>
+
+    <footer class="login-footer"><span>Palawan State University</span><span>Enrollment System</span></footer>
+    <script src="{% static 'js/password-toggle.js' %}" defer></script>
+    <script src="{% static 'js/pwa.js' %}" defer></script>
+</body>
+</html>

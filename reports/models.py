@@ -1,3 +1,1 @@
-from django.db import models
-
-# Create your models here.
+"""Report output is generated from enrollment and finance records."""

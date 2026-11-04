@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="page-header">
+    <p class="eyebrow">Account messages</p>
+    <h1>Messages</h1>
+    <p>Private messages sent between enrollment system accounts.</p>
+    <p class="message-actions">
+        <a href="{% url 'message_compose' %}">＋ New message</a>
+        <a href="{% url 'message_inbox' %}">Inbox</a>
+        <a href="{% url 'message_inbox' %}?folder=sent">Sent</a>
+    </p>
+</section>
+<div class="table-card message-list">
+    <table>
+        <thead>
+            <tr>
+                <th>{% if folder == 'sent' %}To{% else %}From{% endif %}</th>
+                <th>Subject</th>
+                <th>Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for direct_message in direct_messages %}
+            <tr class="{% if folder == 'inbox' and not direct_message.read_at %}message-unread{% endif %}">
+                <td>{% if folder == 'sent' %}{{ direct_message.recipient.get_full_name|default:direct_message.recipient.username }}{% else %}{{ direct_message.sender.get_full_name|default:direct_message.sender.username|default:"Deleted account" }}{% endif %}</td>
+                <td><a href="{% url 'message_detail' direct_message.pk %}">{{ direct_message.subject }}</a></td>
+                <td>{{ direct_message.created_at|date:"M j, Y, g:i a" }}</td>
+                <td>{% if folder == 'sent' %}Sent{% elif direct_message.read_at %}Read{% else %}Unread{% endif %}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="4">{% if folder == 'sent' %}No sent messages yet.{% else %}Your inbox is empty.{% endif %}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

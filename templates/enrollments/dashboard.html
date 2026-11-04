@@ -13,15 +13,31 @@
         <h3>{{ card.title }}</h3>
         <div class="stat-value">{{ card.value }}</div>
         <p>{{ card.description }}</p>
+        {% include 'includes/stat_card_chart.html' %}
     </article>
     {% endfor %}
 </section>
 
-<nav aria-label="Enrollment resources">
-    <h2>Enrollment resources</h2>
-    <ul>
-        <li><a href="{% url records_url %}">View current enrollments</a></li>
-        <li><a href="{% url requests_url %}">Review pending requests</a></li>
-    </ul>
-</nav>
+<section class="resource-panel" aria-labelledby="enrollment-resources-title">
+    <div class="resource-heading">
+        <div>
+            <p class="eyebrow">Quick links</p>
+            <h2 id="enrollment-resources-title">Enrollment services</h2>
+            <p>Manage enrollment records and class selections.</p>
+        </div>
+    </div>
+    <div class="resource-grid">
+        <a class="resource-tile" href="{% url records_url %}">
+            <span class="resource-icon">▣</span><span><strong>Enrollment records</strong><small>Review enrolled students and their status</small></span><span class="resource-arrow">→</span>
+        </a>
+        {% if can_enroll %}
+        <a class="resource-tile" href="{% url 'enrollment_select' %}">
+            <span class="resource-icon">＋</span><span><strong>Select classes</strong><small>Choose classes for the current term</small></span><span class="resource-arrow">→</span>
+        </a>
+        {% endif %}
+        <a class="resource-tile" href="{% url requests_url %}">
+            <span class="resource-icon">◷</span><span><strong>{% if can_enroll %}Find classes{% else %}Enrollment requests{% endif %}</strong><small>{% if can_enroll %}Browse available classes for your term{% else %}Review and process pending enrollment requests{% endif %}</small></span><span class="resource-arrow">→</span>
+        </a>
+    </div>
+</section>
 {% endblock %}

@@ -2,10 +2,11 @@ from django.contrib import admin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import include, path
 
-from config.views import register
+from config.views import register, service_worker
 from students.views import home
 
 urlpatterns = [
+    path('service-worker.js', service_worker, name='service_worker'),
     path('accounts/login/', LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('accounts/register/', register, name='register'),
     path('accounts/logout/', LogoutView.as_view(), name='logout'),

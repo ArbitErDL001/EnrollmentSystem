@@ -4,33 +4,30 @@
 <section class="page-header">
     <p class="eyebrow">Enrollments</p>
     <h1>{{ title }}</h1>
-    <p>Review students with active enrollment records.</p>
+    {% if user_roles %}<p>Records shown are limited to your assigned role.</p>{% endif %}
+    {% if 'Student' in user_roles %}<p><a href="{% url 'enrollment_select' %}">Select classes</a> | <a href="{% url 'finance_invoices' %}">View fee assessment</a></p>{% endif %}
 </section>
-
-<p><a href="{% url 'enrollments_home' %}">Back to enrollment dashboard</a></p>
-
-{% if records %}
-<table>
-    <thead>
-        <tr>
-            <th>Student</th>
-            <th>Course</th>
-            <th>Term</th>
-            <th>Status</th>
-        </tr>
-    </thead>
-    <tbody>
+<div class="table-card">
+    <table>
+        <thead><tr><th>Student ID</th><th>Student</th><th>Program</th><th>Subject</th><th>Section</th><th>Schedule</th><th>Term</th><th>Status</th>{% if can_update %}<th>Update status</th>{% endif %}</tr></thead>
+        <tbody>
         {% for record in records %}
-        <tr>
-            <td>{{ record.student }}</td>
-            <td>{{ record.course }}</td>
-            <td>{{ record.term }}</td>
-            <td>{{ record.status }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-{% else %}
-<p>No current enrollment records are available.</p>
-{% endif %}
+            <tr>
+                <td>{{ record.student.student_id }}</td>
+                <td>{{ record.student.user.get_full_name|default:record.student.user.username }}</td>
+                <td>{{ record.student.program.code|default:"-" }} / Year {{ record.student.year_level }}</td>
+                <td>{{ record.offering.curriculum_entry.subject }}</td>
+                <td>{{ record.offering.section }}</td>
+                <td>{{ record.offering.meeting_days }} {{ record.offering.start_time }}-{{ record.offering.end_time }}</td>
+                <td>{{ record.offering.term }}</td>
+                <td>{{ record.get_status_display }}</td>
+                {% if can_update %}<td><form method="post" action="{% url 'enrollment_status' record.pk %}">{% csrf_token %}
+                    <select name="status"><option value="enrolled">Enrolled</option><option value="completed">Completed</option><option value="dropped">Dropped</option></select>
+                    <button type="submit">Update</button>
+                </form></td>{% endif %}
+            </tr>
+        {% empty %}<tr><td colspan="9">No enrollment records found.</td></tr>{% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

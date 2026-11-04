@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="page-header">
+    <p class="eyebrow">Assessment form</p>
+    <h1>{{ assessment.student.student_id }} - {{ assessment.student.user.get_full_name|default:assessment.student.user.username }}</h1>
+    <p>Program: {{ assessment.student.program|default:"Not assigned" }} | Term: {{ assessment.term }}</p>
+</section>
+<div class="table-card">
+    <h2>Enrolled subjects</h2>
+    <table><thead><tr><th>Subject</th><th>Section</th><th>Units</th></tr></thead><tbody>
+    {% for enrollment in assessment.student.enrollments.all %}
+        {% if enrollment.offering.term == assessment.term and enrollment.status == "enrolled" %}
+        <tr><td>{{ enrollment.offering.curriculum_entry.subject }}</td><td>{{ enrollment.offering.section }}</td><td>{{ enrollment.offering.curriculum_entry.subject.units }}</td></tr>
+        {% endif %}
+    {% empty %}<tr><td colspan="3">No active subjects.</td></tr>{% endfor %}
+    </tbody></table>
+    <h2>Fee breakdown</h2>
+    <table><tbody>
+        <tr><th>Tuition ({{ assessment.units }} units x {{ assessment.tuition_per_unit|floatformat:2 }})</th><td>{{ assessment.tuition|floatformat:2 }}</td></tr>
+        <tr><th>Registration fee</th><td>{{ assessment.registration_fee|floatformat:2 }}</td></tr>
+        <tr><th>Technology fee</th><td>{{ assessment.technology_fee|floatformat:2 }}</td></tr>
+        <tr><th>Total assessed</th><td>{{ assessment.total|floatformat:2 }}</td></tr>
+        <tr><th>Payments received</th><td>{{ assessment.paid|floatformat:2 }}</td></tr>
+        <tr><th>Balance due</th><td>{{ assessment.balance|floatformat:2 }}</td></tr>
+    </tbody></table>
+    {% if 'Cashier' in user_roles or 'Admin' in user_roles %}
+    {% if assessment.balance > 0 %}<p><a href="{% url 'record_payment' assessment.pk %}">Record payment</a></p>{% endif %}
+    {% endif %}
+</div>
+<div class="table-card">
+    <h2>Payment history</h2>
+    <table><thead><tr><th>Reference</th><th>Date</th><th>Amount</th><th>Recorded by</th><th>Note</th></tr></thead><tbody>
+    {% for payment in assessment.payments.all %}
+    <tr><td>{{ payment.reference }}</td><td>{{ payment.received_at }}</td><td>{{ payment.amount|floatformat:2 }}</td><td>{{ payment.recorded_by.username }}</td><td>{{ payment.note }}</td></tr>
+    {% empty %}<tr><td colspan="5">No payments recorded.</td></tr>{% endfor %}
+    </tbody></table>
+</div>
+{% endblock %}

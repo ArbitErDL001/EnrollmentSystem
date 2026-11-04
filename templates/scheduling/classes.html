@@ -5,6 +5,9 @@
     <p class="eyebrow">Scheduling</p>
     <h1>{{ title }}</h1>
     <p>Review confirmed classes, locations, and instructors for the current term.</p>
+    {% if can_edit %}
+    <p><a href="{% url 'offering_add' %}">Add class offering</a> | <a href="{% url 'room_add' %}">Add room</a></p>
+    {% endif %}
 </section>
 
 <p><a href="{% url 'scheduling_home' %}">Back to scheduling dashboard</a></p>
@@ -13,28 +16,35 @@
 <table>
     <thead>
         <tr>
-            <th>Course</th>
+            <th>Program / subject</th>
             <th>Section</th>
-            <th>Day</th>
+            <th>Term</th>
+            <th>Days</th>
             <th>Time</th>
             <th>Room</th>
             <th>Instructor</th>
+            <th>Seats</th>
+            {% if can_edit %}<th>Actions</th>{% endif %}
         </tr>
     </thead>
     <tbody>
         {% for class in classes %}
         <tr>
-            <td>{{ class.course }}</td>
+            <td>{{ class.curriculum_entry.program.code }} / {{ class.curriculum_entry.subject }}</td>
             <td>{{ class.section }}</td>
-            <td>{{ class.day }}</td>
-            <td>{{ class.time }}</td>
-            <td>{{ class.room }}</td>
-            <td>{{ class.instructor }}</td>
+            <td>{{ class.term }}</td>
+            <td>{{ class.meeting_days }}</td>
+            <td>{{ class.start_time }} - {{ class.end_time }}</td>
+            <td>{{ class.room.name }}</td>
+            <td>{{ class.instructor.get_full_name|default:class.instructor.username }}</td>
+            <td>{{ class.enrollments.count }}/{{ class.capacity }}</td>
+            {% if can_edit %}<td><a class="action-edit" href="{% url 'offering_edit' class.pk %}">Edit</a>
+            <form method="post" action="{% url 'schedule_delete' 'offering' class.pk %}" class="inline-form" data-confirm="Delete {{ class }}? This action cannot be undone.">{% csrf_token %}<button class="action-delete" type="submit">Delete</button></form></td>{% endif %}
         </tr>
         {% endfor %}
     </tbody>
 </table>
 {% else %}
-<p>No scheduled classes are currently available.</p>
+<p>No class offerings are currently available.</p>
 {% endif %}
 {% endblock %}

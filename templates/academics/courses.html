@@ -2,37 +2,42 @@
 
 {% block content %}
 <section class="page-header">
-    <p class="eyebrow">Academics</p>
+    <p class="eyebrow">Academic catalog</p>
     <h1>{{ title }}</h1>
-    <p>Browse the courses currently available in the academic catalog.</p>
+    <p>Manage programs, subjects, year-level curriculum mappings, and prerequisite rules.</p>
+    {% if can_edit %}
+    <p>
+        <a href="{% url 'program_add' %}">Add program</a> |
+        <a href="{% url 'subject_add' %}">Add subject</a> |
+        <a href="{% url 'curriculum_add' %}">Add curriculum entry</a>
+    </p>
+    {% endif %}
 </section>
 
-<p><a href="{% url 'academics_home' %}">Back to academic dashboard</a></p>
+<div class="table-card">
+    <h2>Programs</h2>
+    <table><thead><tr><th>Code</th><th>Program</th><th>Status</th>{% if can_edit %}<th>Actions</th>{% endif %}</tr></thead>
+    <tbody>{% for program in programs %}
+        <tr><td>{{ program.code }}</td><td>{{ program.name }}</td><td>{{ program.is_active|yesno:"Active,Inactive" }}</td>
+        {% if can_edit %}<td><a class="action-edit" href="{% url 'program_edit' program.pk %}">Edit</a>
+        <form method="post" action="{% url 'academic_delete' 'program' program.pk %}" class="inline-form" data-confirm="Delete {{ program }}? This action cannot be undone.">{% csrf_token %}<button class="action-delete" type="submit">Delete</button></form></td>{% endif %}</tr>
+    {% empty %}<tr><td colspan="4">No programs configured.</td></tr>{% endfor %}</tbody></table>
 
-{% if courses %}
-<table>
-    <thead>
-        <tr>
-            <th>Code</th>
-            <th>Course</th>
-            <th>Department</th>
-            <th>Units</th>
-            <th>Status</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for course in courses %}
-        <tr>
-            <td>{{ course.code }}</td>
-            <td>{{ course.name }}</td>
-            <td>{{ course.department }}</td>
-            <td>{{ course.units }}</td>
-            <td>{{ course.status }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-{% else %}
-<p>No courses are currently available.</p>
-{% endif %}
+    <h2>Subjects</h2>
+    <table><thead><tr><th>Code</th><th>Subject</th><th>Units</th><th>Status</th>{% if can_edit %}<th>Actions</th>{% endif %}</tr></thead>
+    <tbody>{% for subject in subjects %}
+        <tr><td>{{ subject.code }}</td><td>{{ subject.name }}</td><td>{{ subject.units }}</td><td>{{ subject.is_active|yesno:"Active,Inactive" }}</td>
+        {% if can_edit %}<td><a class="action-edit" href="{% url 'subject_edit' subject.pk %}">Edit</a>
+        <form method="post" action="{% url 'academic_delete' 'subject' subject.pk %}" class="inline-form" data-confirm="Delete {{ subject }}? This action cannot be undone.">{% csrf_token %}<button class="action-delete" type="submit">Delete</button></form></td>{% endif %}</tr>
+    {% empty %}<tr><td colspan="5">No subjects configured.</td></tr>{% endfor %}</tbody></table>
+
+    <h2>Curriculum and prerequisites</h2>
+    <table><thead><tr><th>Program</th><th>Year</th><th>Subject</th><th>Prerequisites</th>{% if can_edit %}<th>Actions</th>{% endif %}</tr></thead>
+    <tbody>{% for entry in curriculum %}
+        <tr><td>{{ entry.program }}</td><td>{{ entry.year_level }}</td><td>{{ entry.subject }}</td>
+        <td>{% for prerequisite in entry.prerequisites.all %}{{ prerequisite.code }}{% if not forloop.last %}, {% endif %}{% empty %}None{% endfor %}</td>
+        {% if can_edit %}<td><a class="action-edit" href="{% url 'curriculum_edit' entry.pk %}">Edit</a>
+        <form method="post" action="{% url 'academic_delete' 'curriculum' entry.pk %}" class="inline-form" data-confirm="Delete {{ entry }}? This action cannot be undone.">{% csrf_token %}<button class="action-delete" type="submit">Delete</button></form></td>{% endif %}</tr>
+    {% empty %}<tr><td colspan="5">No curriculum entries configured.</td></tr>{% endfor %}</tbody></table>
+</div>
 {% endblock %}

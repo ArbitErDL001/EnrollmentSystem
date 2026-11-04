@@ -13,15 +13,26 @@
         <h3>{{ card.title }}</h3>
         <div class="stat-value">{{ card.value }}</div>
         <p>{{ card.description }}</p>
+        {% include 'includes/stat_card_chart.html' %}
     </article>
     {% endfor %}
 </section>
 
-<nav aria-label="Academic resources">
-    <h2>Academic resources</h2>
-    <ul>
-        <li><a href="{% url courses_url %}">View courses offered</a></li>
-        <li><a href="{% url faculty_url %}">View faculty directory</a></li>
-    </ul>
-</nav>
+<section class="resource-panel" aria-labelledby="academic-resources-title">
+    <div class="resource-heading">
+        <div>
+            <p class="eyebrow">Quick links</p>
+            <h2 id="academic-resources-title">Academic catalog</h2>
+            <p>Browse programs, subjects, and faculty resources.</p>
+        </div>
+    </div>
+    <div class="resource-grid">
+        <a class="resource-tile" href="{% url courses_url %}">
+            <span class="resource-icon">▤</span><span><strong>Programs and courses</strong><small>Explore available programs and course offerings</small></span><span class="resource-arrow">→</span>
+        </a>
+        <a class="resource-tile" href="{% url faculty_url %}">
+            <span class="resource-icon">♙</span><span><strong>Faculty directory</strong><small>View instructors and faculty details</small></span><span class="resource-arrow">→</span>
+        </a>
+    </div>
+</section>
 {% endblock %}

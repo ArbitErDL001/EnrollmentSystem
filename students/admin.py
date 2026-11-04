@@ -6,6 +6,7 @@ from django.contrib.auth.forms import UserChangeForm
 from django.contrib.auth.models import Group
 
 from .roles import ROLE_NAMES, STAFF_ROLES
+from .models import StudentProfile
 
 User = get_user_model()
 admin.site.unregister(User)
@@ -51,3 +52,10 @@ class ManagedUserAdmin(UserAdmin):
         super().save_model(request, obj, form, change)
         role = form.cleaned_data.get('role', 'Student')
         obj.groups.set([Group.objects.get(name=role)])
+
+
+@admin.register(StudentProfile)
+class StudentProfileAdmin(admin.ModelAdmin):
+    list_display = ('student_id', 'user', 'program', 'year_level', 'status')
+    list_filter = ('program', 'year_level', 'status')
+    search_fields = ('student_id', 'user__username', 'user__first_name', 'user__last_name')

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="page-header">
+    <p class="eyebrow">Account messages</p>
+    <h1>{{ direct_message.subject }}</h1>
+    <p><a href="{% url 'message_inbox' %}">← Back to inbox</a></p>
+</section>
+<article class="table-card message-detail">
+    <p><strong>From:</strong> {{ direct_message.sender.get_full_name|default:direct_message.sender.username|default:"Deleted account" }}</p>
+    <p><strong>To:</strong> {{ direct_message.recipient.get_full_name|default:direct_message.recipient.username }}</p>
+    <p><strong>Sent:</strong> {{ direct_message.created_at|date:"M j, Y, g:i a" }}</p>
+    <hr>
+    <div class="message-body">{{ direct_message.body|linebreaks }}</div>
+    {% if direct_message.recipient_id == user.pk and direct_message.sender %}
+    <a class="message-reply" href="{% url 'message_compose' %}?to={{ direct_message.sender_id }}">Reply</a>
+    {% endif %}
+</article>
+{% endblock %}

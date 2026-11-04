@@ -2,37 +2,38 @@
 
 {% block content %}
 <section class="page-header">
-    <p class="eyebrow">Reports</p>
+    <p class="eyebrow">Operational report</p>
     <h1>{{ title }}</h1>
-    <p>Browse reports that are available for the current academic operations.</p>
+    <p>Generated from current system records.</p>
+    <div class="report-toolbar">
+        <form class="report-filter" method="get">
+            <input type="hidden" name="kind" value="{{ kind }}">
+            <div class="report-filter-field">
+                <label for="term">Term</label>
+                <select name="term" id="term">
+                    <option value="">All terms</option>
+                    {% for available_term in terms %}<option value="{{ available_term }}" {% if available_term == term %}selected{% endif %}>{{ available_term }}</option>{% endfor %}
+                </select>
+            </div>
+            <button type="submit">Filter</button>
+        </form>
+        <div class="report-exports" aria-label="Export report">
+            <a href="{% url 'report_export' kind 'pdf' %}?term={{ term|urlencode }}">Export PDF</a>
+            <a href="{% url 'report_export' kind 'xlsx' %}?term={{ term|urlencode }}">Export Excel</a>
+        </div>
+    </div>
 </section>
-
-<p><a href="{% url 'reports_home' %}">Back to reports dashboard</a></p>
-
-{% if reports %}
-<table>
-    <thead>
-        <tr>
-            <th>Report</th>
-            <th>Category</th>
-            <th>Period</th>
-            <th>Published</th>
-            <th>Owner</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for report in reports %}
-        <tr>
-            <td>{{ report.name }}</td>
-            <td>{{ report.category }}</td>
-            <td>{{ report.period }}</td>
-            <td>{{ report.published }}</td>
-            <td>{{ report.owner }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-{% else %}
-<p>No published reports are currently available.</p>
-{% endif %}
+<div class="table-card">
+    <table>
+        <thead><tr>{% for header in headers %}<th>{{ header }}</th>{% endfor %}</tr></thead>
+        <tbody>
+        {% for row in rows %}<tr>{% for value in row %}<td>{{ value }}</td>{% endfor %}</tr>
+        {% empty %}<tr><td colspan="{{ headers|length }}">No records found for this report.</td></tr>{% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="table-card">
+    <h2>Summary</h2>
+    <ul>{% for item in summary %}<li>{{ item.0 }}: {{ item.1 }}</li>{% endfor %}</ul>
+</div>
 {% endblock %}

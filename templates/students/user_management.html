@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="page-header">
+    <p class="eyebrow">Administrator</p>
+    <h1>User and Role Management</h1>
+    <p>Create accounts, assign roles, activate or deactivate users, and edit account details.</p>
+    <a class="button" href="{% url 'user_add' %}">Create user</a>
+</section>
+<div class="table-card">
+    <table>
+        <thead><tr><th>Username</th><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+        {% for managed_user in users %}
+            <tr>
+                <td>{{ managed_user.username }}</td>
+                <td>{{ managed_user.get_full_name|default:"-" }}</td>
+                <td>{{ managed_user.email|default:"-" }}</td>
+                <td>{% if managed_user.is_superuser %}Admin{% else %}{{ managed_user.groups.first.name|default:"No role" }}{% endif %}</td>
+                <td>{% if managed_user.is_active %}Active{% else %}Inactive{% endif %}</td>
+                <td>
+                    <a class="action-edit" href="{% url 'user_edit' managed_user.pk %}">Edit</a>
+                    {% if managed_user.pk != user.pk %}
+                    <form method="post" action="{% url 'user_delete' managed_user.pk %}" class="inline-form" data-confirm="Delete account {{ managed_user.username }}? This action cannot be undone.">
+                        {% csrf_token %}
+                        <button class="action-delete" type="submit">Delete</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="6">No user accounts found.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

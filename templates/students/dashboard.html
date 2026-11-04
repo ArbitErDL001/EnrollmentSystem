@@ -13,15 +13,37 @@
         <h3>{{ card.title }}</h3>
         <div class="stat-value">{{ card.value }}</div>
         <p>{{ card.description }}</p>
+        {% include 'includes/stat_card_chart.html' %}
     </article>
     {% endfor %}
 </section>
 
-<nav aria-label="Student resources">
-    <h2>Student resources</h2>
-    <ul>
-        <li><a href="{% url directory_url %}">View student directory</a></li>
-        <li><a href="{% url admissions_url %}">View new admissions</a></li>
-    </ul>
-</nav>
+<section class="resource-panel" aria-labelledby="student-resources-title">
+    <div class="resource-heading">
+        <div>
+            <p class="eyebrow">Quick links</p>
+            <h2 id="student-resources-title">{% if is_student %}My student record{% else %}Student services{% endif %}</h2>
+            <p>Choose an action to continue.</p>
+        </div>
+    </div>
+    <div class="resource-grid">
+        {% if is_student %}
+        <a class="resource-tile" href="{% url 'student_profile' %}">
+            <span class="resource-icon">♙</span><span><strong>My profile</strong><small>View and update your contact information</small></span><span class="resource-arrow">→</span>
+        </a>
+        {% else %}
+        <a class="resource-tile" href="{% url directory_url %}">
+            <span class="resource-icon">♧</span><span><strong>Student directory</strong><small>Find and update student records</small></span><span class="resource-arrow">→</span>
+        </a>
+        <a class="resource-tile" href="{% url admissions_url %}">
+            <span class="resource-icon">＋</span><span><strong>Register a student</strong><small>Create an account and student record</small></span><span class="resource-arrow">→</span>
+        </a>
+        {% if can_manage_users %}
+        <a class="resource-tile" href="{% url 'user_management' %}">
+            <span class="resource-icon">⚙</span><span><strong>User management</strong><small>Create accounts and assign roles</small></span><span class="resource-arrow">→</span>
+        </a>
+        {% endif %}
+        {% endif %}
+    </div>
+</section>
 {% endblock %}

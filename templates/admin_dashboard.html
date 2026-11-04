@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block body_class %}admin-dashboard-page{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/admin-dashboard.css' %}?v=20261101-table-tools">{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard">
+    <aside class="admin-sidebar">
+        <a class="admin-brand" href="{% url 'home' %}">
+            <span class="admin-brand-icon">PSU</span>
+            <span class="admin-brand-copy"><strong class="admin-brand-name">Palawan State<br>University</strong><small>ADMIN CONSOLE</small></span>
+        </a>
+        <div class="admin-campus">
+            <span class="admin-campus-icon">⌂</span>
+            <span><strong>Enrollment System</strong><small>Academic year {{ current_term }}</small></span>
+        </div>
+        <p class="admin-nav-title">WORKSPACE</p>
+        <nav class="admin-navigation" aria-label="Administrator navigation">
+            <a class="active" href="{% url 'home' %}"><span class="admin-nav-icon">◫</span>Overview</a>
+            <a href="{% url 'user_management' %}"><span class="admin-nav-icon">♙</span>User management</a>
+            <a href="{% url 'students_home' %}"><span class="admin-nav-icon">♧</span>Student records</a>
+            <a href="{% url 'academics_home' %}"><span class="admin-nav-icon">▤</span>Academic catalog</a>
+            <a href="{% url 'enrollments_home' %}"><span class="admin-nav-icon">▣</span>Enrollments</a>
+            <a href="{% url 'scheduling_home' %}"><span class="admin-nav-icon">▦</span>Class schedule</a>
+            <a href="{% url 'finance_home' %}"><span class="admin-nav-icon">＄</span>Finance</a>
+            <a href="{% url 'reports_home' %}"><span class="admin-nav-icon">▥</span>Reports</a>
+            <a href="{% url 'admin:index' %}"><span class="admin-nav-icon">⚙</span>Django admin</a>
+        </nav>
+        <div class="admin-sidebar-bottom">
+            <div class="admin-enrollment-note">
+                <span class="admin-live">● SYSTEM ACTIVE</span>
+                <small>Enrollment records and collections update from saved data.</small>
+            </div>
+            <div class="admin-profile">
+                <span class="admin-avatar">{{ user.get_username|first|upper }}</span>
+                <span class="admin-profile-name"><strong>{{ user.get_full_name|default:user.username }}</strong><small>Administrator</small></span>
+                <form action="{% url 'logout' %}" method="post">
+                    {% csrf_token %}
+                    <button class="admin-logout" type="submit" aria-label="Log out">↗</button>
+                </form>
+            </div>
+        </div>
+    </aside>
+
+    <div class="admin-shell">
+        <header class="admin-topbar">
+            <div class="admin-breadcrumb">Workspace <b>/ Overview</b></div>
+            <div class="admin-top-right"><span class="admin-online">● Online</span><span class="admin-divider"></span><button class="admin-theme-toggle" type="button" data-theme-toggle aria-label="Switch to light mode" aria-pressed="false">☀ Light</button><span class="admin-divider"></span>{% include 'includes/message_notifications.html' %}<span class="admin-divider"></span><span>{{ user.get_full_name|default:user.username }}</span></div>
+        </header>
+
+        <main class="admin-main">
+            <section class="admin-page-heading">
+                <div>
+                    <h1>Admin Dashboard</h1>
+                    <p class="admin-subtitle">A live overview of enrollment operations, student accounts, and fee collections.</p>
+                </div>
+                <div class="admin-actions">
+                    <a class="admin-button" href="{% url 'admin:index' %}">Open data management</a>
+                    <a class="admin-button admin-button-primary" href="{% url 'user_add' %}">＋ Create user</a>
+                </div>
+            </section>
+
+            <section class="admin-metrics" aria-label="Enrollment overview">
+                <article class="admin-metric">
+                    <div class="admin-metric-label"><span>Registered students</span><span>♧</span></div>
+                    <strong>{{ total_students }}</strong>
+                    <small>{{ active_students }} active student records</small>
+                    <div class="admin-metric-chart" role="img" aria-label="Active students: {{ student_activity_percent }}% of registered students">
+                        <div class="admin-metric-donut" style="--chart-value: {{ student_activity_percent }}%" aria-hidden="true"><span>{{ student_activity_percent }}%</span></div>
+                    </div>
+                </article>
+                <article class="admin-metric">
+                    <div class="admin-metric-label"><span>Enrolled this term</span><span>▣</span></div>
+                    <strong>{{ current_enrollment_count }}</strong>
+                    <small>{{ current_term }}</small>
+                    <div class="admin-metric-chart" role="img" aria-label="Current enrollment: {{ enrollment_percent }}% of registered students">
+                        <div class="admin-metric-donut" style="--chart-value: {{ enrollment_percent }}%" aria-hidden="true"><span>{{ enrollment_percent }}%</span></div>
+                    </div>
+                </article>
+                <article class="admin-metric">
+                    <div class="admin-metric-label"><span>Collected fees</span><span>＄</span></div>
+                    <strong>{{ total_collected|floatformat:2 }}</strong>
+                    <small>All recorded payments</small>
+                    <div class="admin-metric-chart" role="img" aria-label="Fees collected: {{ collection_percent }}% of total assessed fees">
+                        <div class="admin-metric-donut" style="--chart-value: {{ collection_percent }}%" aria-hidden="true"><span>{{ collection_percent }}%</span></div>
+                    </div>
+                </article>
+                <article class="admin-metric admin-metric-balance">
+                    <div class="admin-metric-label"><span>Outstanding balance</span><span>◷</span></div>
+                    <strong>{{ total_balance|floatformat:2 }}</strong>
+                    <small>{{ total_assessed|floatformat:2 }} total assessed</small>
+                    <div class="admin-metric-chart" role="img" aria-label="Outstanding balance: {{ balance_percent }}% of total assessed fees">
+                        <div class="admin-metric-donut" style="--chart-value: {{ balance_percent }}%" aria-hidden="true"><span>{{ balance_percent }}%</span></div>
+                    </div>
+                </article>
+            </section>
+
+            <section class="admin-grid">
+                <div class="admin-card">
+                    <div class="admin-card-head">
+                        <div><h2>Enrollment by program</h2><p class="admin-description">Current enrolled records · {{ current_term }}</p></div>
+                        <a class="admin-text-link" href="{% url 'reports_published' %}?kind=enrollment">View report →</a>
+                    </div>
+                    {% if program_enrollments %}
+                        {% for item in program_enrollments %}
+                        <div class="admin-bar-row">
+                            <div class="admin-bar-label"><span>{{ item.student__program__code|default:"Unassigned" }}</span><span>{{ item.total }}</span></div>
+                            <div class="admin-progress"><i style="width:{% widthratio item.total current_enrollment_count 100 %}%"></i></div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="admin-empty">No enrollment records for the current term.</p>
+                    {% endif %}
+                    <div class="admin-card-foot"><span>{{ program_count }} active programs</span><span>{{ current_enrollment_count }} total enrollments</span></div>
+                </div>
+
+                <div class="admin-card">
+                    <div class="admin-card-head"><div><h2>Accounts by role</h2><p class="admin-description">Managed users grouped by assigned role</p></div><a class="admin-text-link" href="{% url 'user_management' %}">Manage →</a></div>
+                    {% for role in role_counts %}
+                    <div class="admin-role-row"><span>{{ role.name }}</span><strong>{{ role.count }}</strong></div>
+                    {% endfor %}
+                    <div class="admin-card-foot"><span>Role access is managed by administrators</span><a class="admin-text-link" href="{% url 'user_add' %}">＋ Add account</a></div>
+                </div>
+            </section>
+
+            <section class="admin-grid">
+                <div class="admin-card">
+                    <div class="admin-card-head"><div><h2>Recent student records</h2><p class="admin-description">Recently registered student profiles</p></div><a class="admin-text-link" href="{% url 'student_directory' %}">View all →</a></div>
+                    <div class="admin-table-wrap">
+                        <table class="admin-table"><thead><tr><th>STUDENT</th><th>PROGRAM / YEAR</th><th>STATUS</th></tr></thead><tbody>
+                        {% for student in recent_students %}
+                            <tr><td><strong>{{ student.user.get_full_name|default:student.user.username }}</strong><small>{{ student.student_id }}</small></td>
+                            <td>{{ student.program.code|default:"—" }} · Year {{ student.year_level }}</td>
+                            <td><span class="admin-badge{% if student.status == 'active' %} admin-badge-active{% endif %}">{{ student.get_status_display }}</span></td></tr>
+                        {% empty %}<tr><td colspan="3" class="admin-empty">No student records yet.</td></tr>{% endfor %}
+                        </tbody></table>
+                    </div>
+                    <div class="admin-card-foot"><span>{{ total_students }} student records</span><a class="admin-text-link" href="{% url 'student_admissions' %}">＋ Register student</a></div>
+                </div>
+
+                <div class="admin-card">
+                    <div class="admin-card-head"><div><h2>Recent payments</h2><p class="admin-description">Latest cashier transactions</p></div><a class="admin-text-link" href="{% url 'finance_payments' %}">View ledger →</a></div>
+                    {% for payment in recent_payments %}
+                    <div class="admin-payment-row">
+                        <span class="admin-payment-icon">＄</span>
+                        <span class="admin-payment-detail"><strong>{{ payment.assessment.student.student_id }}</strong><small>{{ payment.reference }} · {{ payment.received_at|date:"M j, Y" }}</small></span>
+                        <strong class="admin-payment-amount">{{ payment.amount|floatformat:2 }}</strong>
+                    </div>
+                    {% empty %}<p class="admin-empty">No payments have been recorded.</p>{% endfor %}
+                    <div class="admin-card-foot"><span>Collected to date</span><strong>{{ total_collected|floatformat:2 }}</strong></div>
+                </div>
+            </section>
+            <footer class="admin-footer"><span>Enrollment System · Administrator workspace</span><span>Current term: {{ current_term }}</span></footer>
+        </main>
+    </div>
+</div>
+{% endblock %}
