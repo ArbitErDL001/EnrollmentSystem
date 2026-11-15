@@ -76,13 +76,45 @@ class ReportExportTests(TestCase):
         self.assertEqual(response['Content-Type'], 'application/pdf')
         self.assertTrue(response.content.startswith(b'%PDF'))
 
-    def test_students_cannot_access_financial_reports(self):
+    def test_students_can_access_only_their_financial_reports(self):
         student = self.student.user
         self.client.force_login(student)
 
         response = self.client.get(reverse('reports_published') + '?kind=collection')
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.student.student_id)
+        self.assertContains(response, 'Records available to your account')
+
+    def test_student_enrollment_report_is_scoped_to_their_records(self):
+        other_user = get_user_model().objects.create_user(username='other-student', first_name='Other')
+        other_student = StudentProfile.objects.create(user=other_user)
+        Enrollment.objects.create(student=other_student, offering=Enrollment.objects.first().offering)
+
+        self.client.force_login(self.student.user)
+        response = self.client.get(reverse('reports_published') + '?kind=enrollment')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.student.student_id)
+        self.assertNotContains(response, other_student.student_id)
+
+    def test_instructor_enrollment_report_is_scoped_to_taught_classes(self):
+        instructor = get_user_model().objects.get(username='instructor')
+        other_instructor = get_user_model().objects.create_user(username='other-instructor')
+        other_instructor.groups.add(Group.objects.get(name='Instructor'))
+        other_offering = ClassOffering.objects.create(
+            curriculum_entry=Enrollment.objects.first().offering.curriculum_entry,
+            section='B', term='2026-2', meeting_days='TUE', start_time=time(9), end_time=time(10),
+            room=Room.objects.create(name='Other Report Room'), instructor=other_instructor, capacity=20,
+        )
+        Enrollment.objects.create(student=self.student, offering=other_offering, status='completed')
+
+        self.client.force_login(instructor)
+        response = self.client.get(reverse('reports_published') + '?kind=enrollment')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '2026-1')
+        self.assertNotContains(response, '2026-2')
 
     def test_enrollment_report_includes_term_totals(self):
         response = self.client.get(reverse('reports_published') + '?kind=enrollment')

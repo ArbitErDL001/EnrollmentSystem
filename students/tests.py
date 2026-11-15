@@ -141,10 +141,11 @@ class DashboardAccessTests(TestCase):
             reverse('student_directory'),
             reverse('student_admissions'),
             reverse('academics_home'),
-            reverse('reports_home'),
         ]:
             with self.subTest(forbidden_path=path):
                 self.assertEqual(self.client.get(path).status_code, 403)
+
+        self.assertEqual(self.client.get(reverse('reports_home')).status_code, 200)
 
     def test_student_cannot_open_data_management(self):
         student = self.user_model.objects.create_user(username='student', password='test-password')
