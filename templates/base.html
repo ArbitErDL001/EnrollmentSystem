@@ -9,7 +9,7 @@
     <link rel="manifest" href="{% static 'site.webmanifest' %}">
     <link rel="icon" href="{% static 'images/psu-app-icon.svg' %}" type="image/svg+xml">
     <script src="{% static 'js/theme-toggle.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=20261101-table-tools">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=20261115-active-theme-fix">
     {% block extra_css %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}" data-role="{{ user_roles.0|default:'Student' }}" data-system-admin="{{ is_system_admin|yesno:'true,false' }}">
@@ -46,7 +46,7 @@
                 {% if 'Admin' in user_roles or 'Registrar' in user_roles or 'Instructor' in user_roles or 'Student' in user_roles %}
                 <a class="{% if active_section == 'scheduling' %}active{% endif %}" href="{% url 'scheduling_home' %}"><span class="app-nav-icon">▦</span>{% if is_system_admin %}Class schedule{% else %}Scheduling{% endif %}</a>
                 {% endif %}
-                {% if 'Admin' in user_roles or 'Registrar' in user_roles or 'Cashier' in user_roles %}
+                {% if 'Admin' in user_roles or 'Registrar' in user_roles or 'Cashier' in user_roles or 'Student' in user_roles %}
                 <a class="{% if active_section == 'reports' %}active{% endif %}" href="{% url 'reports_home' %}"><span class="app-nav-icon">▥</span>Reports</a>
                 {% endif %}
                 {% if is_system_admin %}
