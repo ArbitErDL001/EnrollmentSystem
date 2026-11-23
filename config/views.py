@@ -11,6 +11,7 @@ from django.views.decorators.http import require_GET
 
 from students.forms import StudentRegistrationForm
 from students.models import StudentProfile
+from students.notifications import notify_new_account
 
 
 @require_GET
@@ -35,7 +36,7 @@ def register(request):
             with transaction.atomic():
                 user = form.save()
                 user.groups.add(Group.objects.get(name='Student'))
-                StudentProfile.objects.create(
+                profile = StudentProfile.objects.create(
                     user=user,
                     phone=form.cleaned_data['phone'],
                     address=form.cleaned_data['address'],
@@ -43,6 +44,7 @@ def register(request):
                     program=form.cleaned_data['program'],
                     year_level=form.cleaned_data['year_level'],
                 )
+                notify_new_account(user, 'Student', sender=user, student_profile=profile)
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             messages.success(
                 request,

@@ -4,7 +4,10 @@ from django.core.management import call_command
 from django.test import Client, TestCase
 from django.urls import reverse
 
+from academics.models import Program
+
 from .models import DirectMessage, StudentProfile
+from .roles import has_role
 
 
 class DashboardAccessTests(TestCase):
@@ -33,6 +36,16 @@ class DashboardAccessTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Log in')
+
+    def test_superusers_have_admin_role_without_implicit_student_or_instructor_roles(self):
+        administrator = self.user_model.objects.create_superuser(
+            username='role-admin',
+            password='test-password',
+        )
+
+        self.assertTrue(has_role(administrator, 'Admin'))
+        self.assertFalse(has_role(administrator, 'Student'))
+        self.assertFalse(has_role(administrator, 'Instructor'))
 
     def test_login_redirects_to_dashboard(self):
         role_users = [
@@ -197,6 +210,10 @@ class DashboardAccessTests(TestCase):
 
     def test_administrator_can_create_account_with_assigned_role(self):
         administrator = self.user_model.objects.create_superuser(username='root', password='test-password')
+        other_administrator = self.user_model.objects.create_superuser(
+            username='other-root',
+            password='test-password',
+        )
         self.client.force_login(administrator)
 
         response = self.client.post(reverse('user_add'), {
@@ -214,6 +231,11 @@ class DashboardAccessTests(TestCase):
         self.assertTrue(cashier.is_staff)
         self.assertFalse(cashier.is_superuser)
         self.assertEqual(list(cashier.groups.values_list('name', flat=True)), ['Cashier'])
+        notification = DirectMessage.objects.get(
+            recipient=other_administrator,
+            subject='New account created: newcashier',
+        )
+        self.assertEqual(notification.sender, administrator)
 
     def test_create_user_form_has_password_visibility_controls(self):
         administrator = self.user_model.objects.create_superuser(username='root', password='test-password')
@@ -234,6 +256,36 @@ class DashboardAccessTests(TestCase):
         self.assertEqual(self.client.get(reverse('student_admissions')).status_code, 200)
         self.assertEqual(self.client.get(reverse('student_directory')).status_code, 200)
 
+    def test_student_admission_notifies_administrators(self):
+        administrator = self.user_model.objects.create_superuser(
+            username='admissions-admin',
+            password='test-password',
+        )
+        registrar = self.user_model.objects.create_user(username='registrar', password='test-password')
+        registrar.groups.add(Group.objects.get(name='Registrar'))
+        program = Program.objects.create(code='BSCS', name='Computer Science')
+        self.client.force_login(registrar)
+
+        response = self.client.post(reverse('student_admissions'), {
+            'username': 'admitted-student',
+            'first_name': 'Admitted',
+            'last_name': 'Student',
+            'email': 'admitted@example.invalid',
+            'phone': '555-0101',
+            'address': 'Example Street',
+            'date_of_birth': '2005-01-02',
+            'program': program.pk,
+            'year_level': '1',
+            'password1': 'A-strong-password-123',
+            'password2': 'A-strong-password-123',
+        })
+
+        self.assertRedirects(response, reverse('student_directory'))
+        student = self.user_model.objects.get(username='admitted-student')
+        notification = DirectMessage.objects.get(recipient=administrator)
+        self.assertEqual(notification.sender, registrar)
+        self.assertIn(student.student_profile.student_id, notification.body)
+
     def test_faker_seed_command_is_repeatable(self):
         call_command('seed_demo_data', students=2, seed=77, verbosity=0)
         first_profile_count = StudentProfile.objects.count()
@@ -247,6 +299,66 @@ class DashboardAccessTests(TestCase):
         call_command('seed_demo_data', students=2, seed=77, password='local-demo-password', verbosity=0)
         demo_student = self.user_model.objects.get(username='demo.student001')
         self.assertTrue(demo_student.check_password('local-demo-password'))
+
+    def test_documented_demo_seed_contains_the_workflow_records(self):
+        from academics.models import CurriculumEntry, Program, Subject
+        from enrollments.models import Enrollment
+        from finance.models import Assessment, Payment
+        from scheduling.models import ClassOffering, Room
+
+        call_command(
+            'seed_demo_data',
+            students=6,
+            seed=2026,
+            password='local-demo-password',
+            verbosity=0,
+        )
+
+        self.assertEqual(self.user_model.objects.count(), 13)
+        self.assertEqual(Program.objects.count(), 3)
+        self.assertEqual(Subject.objects.count(), 18)
+        self.assertEqual(Room.objects.count(), 4)
+        self.assertEqual(ClassOffering.objects.count(), 19)
+        self.assertEqual(Enrollment.objects.count(), 8)
+        self.assertEqual(Assessment.objects.count(), 4)
+        self.assertEqual(Payment.objects.count(), 2)
+        self.assertFalse(
+            Enrollment.objects.filter(student__user__username='demo.student001').exists()
+        )
+
+        prerequisite_entries = CurriculumEntry.objects.filter(year_level=2)
+        self.assertEqual(prerequisite_entries.count(), 9)
+        self.assertTrue(all(entry.prerequisites.exists() for entry in prerequisite_entries))
+
+        second_year_student = self.user_model.objects.get(
+            username='demo.student003',
+        ).student_profile
+        self.assertEqual(second_year_student.program.code, 'BSIT')
+        self.assertEqual(second_year_student.year_level, 2)
+
+        paid_assessment = Assessment.objects.get(
+            student__user__username='demo.student002',
+            term='2026-1',
+        )
+        self.assertTrue(paid_assessment.payments.exists())
+        self.assertGreater(paid_assessment.balance, 0)
+
+        first_class = ClassOffering.objects.get(
+            curriculum_entry__program__code='BSCS',
+            curriculum_entry__year_level=1,
+            curriculum_entry__subject__code='CS101',
+            section='A',
+        )
+        alternate_class = ClassOffering.objects.get(
+            curriculum_entry__program__code='BSCS',
+            curriculum_entry__subject__code='CS102',
+            section='B',
+        )
+        self.assertEqual(alternate_class.meeting_days, first_class.meeting_days)
+        self.assertEqual(alternate_class.start_time, first_class.start_time)
+        self.assertEqual(alternate_class.end_time, first_class.end_time)
+        self.assertNotEqual(alternate_class.room_id, first_class.room_id)
+        self.assertNotEqual(alternate_class.instructor_id, first_class.instructor_id)
 
 
 class UserRoleAdminTests(TestCase):

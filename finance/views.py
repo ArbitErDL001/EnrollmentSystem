@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from students.roles import ROLE_NAMES, has_role, roles_required
 from students.models import StudentProfile
+from students.notifications import notify_user
 
 from .forms import PaymentForm
 from .models import Assessment, Payment
@@ -96,6 +97,16 @@ def record_payment(request, assessment_id):
             form = PaymentForm(request.POST, assessment=assessment, recorded_by=request.user)
             if form.is_valid():
                 payment = form.save()
+                notify_user(
+                    assessment.student.user,
+                    sender=request.user,
+                    subject=f'Payment received: {payment.reference}',
+                    body=(
+                        f'Your payment of {payment.amount:.2f} was recorded for '
+                        f'{assessment.term}. Your remaining balance is '
+                        f'{assessment.balance:.2f}.'
+                    ),
+                )
                 messages.success(request, f'Payment {payment.reference} recorded.')
                 return redirect('assessment_detail', assessment_id=assessment.pk)
     else:

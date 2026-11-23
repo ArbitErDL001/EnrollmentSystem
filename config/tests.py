@@ -1,10 +1,11 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-from django.test import TestCase
+from django.test import Client, TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from academics.models import Program
-from students.models import StudentProfile
+from students.models import DirectMessage, StudentProfile
 
 class RegistrationTests(TestCase):
     def test_role_groups_are_available(self):
@@ -21,6 +22,10 @@ class RegistrationTests(TestCase):
 
     def test_valid_registration_signs_in_and_redirects_to_overview(self):
         program = Program.objects.create(code='BSCS', name='Computer Science')
+        administrator = get_user_model().objects.create_superuser(
+            username='registration-admin',
+            password='test-password',
+        )
         response = self.client.post(reverse('register'), {
             'username': 'newstudent',
             'first_name': 'New',
@@ -45,9 +50,37 @@ class RegistrationTests(TestCase):
         self.assertFalse(user.is_superuser)
         self.assertEqual(list(user.groups.values_list('name', flat=True)), ['Student'])
         profile = StudentProfile.objects.get(user=user)
-        self.assertTrue(profile.student_id.startswith('STU-'))
+        self.assertTrue(profile.student_id.startswith(f'STU-{timezone.now():%Y}-'))
         self.assertEqual(profile.program, program)
         self.assertEqual(profile.phone, '555-0101')
+        notification = DirectMessage.objects.get(recipient=administrator)
+        self.assertEqual(notification.sender, user)
+        self.assertIn(profile.student_id, notification.body)
+        self.assertIn('newstudent', notification.subject)
+        administrator_client = Client()
+        administrator_client.force_login(administrator)
+        inbox = administrator_client.get(reverse('message_inbox'))
+        self.assertContains(inbox, notification.subject)
+        self.assertContains(inbox, 'aria-label="Messages, 1 unread"')
+
+        profile_page = self.client.get(reverse('student_profile'))
+        self.assertContains(profile_page, profile.student_id)
+
+        response = self.client.post(reverse('student_profile'), {
+            'first_name': 'New',
+            'last_name': 'Student',
+            'email': 'newstudent@example.invalid',
+            'phone': '555-0202',
+            'address': '456 Updated Street',
+            'date_of_birth': '2005-01-02',
+        })
+
+        self.assertRedirects(response, reverse('student_profile'))
+        profile.refresh_from_db()
+        self.assertEqual(profile.phone, '555-0202')
+        refreshed_profile_page = self.client.get(reverse('student_profile'))
+        self.assertContains(refreshed_profile_page, profile.student_id)
+        self.assertContains(refreshed_profile_page, '555-0202')
 
     def test_invalid_registration_does_not_create_user(self):
         response = self.client.post(reverse('register'), {

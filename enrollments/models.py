@@ -1,5 +1,7 @@
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Q
 
 
 class Enrollment(models.Model):
@@ -57,3 +59,38 @@ class Enrollment(models.Model):
 
     def __str__(self):
         return f'{self.student.student_id} - {self.offering}'
+
+
+class EnrollmentRequest(models.Model):
+    STATUSES = [
+        ('pending', 'Pending'),
+        ('accepted', 'Accepted'),
+        ('rejected', 'Rejected'),
+    ]
+
+    student = models.ForeignKey(
+        'students.StudentProfile', on_delete=models.PROTECT, related_name='enrollment_requests'
+    )
+    offering = models.ForeignKey(
+        'scheduling.ClassOffering', on_delete=models.PROTECT, related_name='enrollment_requests'
+    )
+    status = models.CharField(max_length=10, choices=STATUSES, default='pending')
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    decided_at = models.DateTimeField(null=True, blank=True)
+    decided_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='decided_enrollment_requests',
+    )
+
+    class Meta:
+        ordering = ('-submitted_at',)
+        constraints = [
+            models.UniqueConstraint(
+                fields=('student', 'offering'),
+                condition=Q(status='pending'),
+                name='unique_pending_enrollment_request',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.student.student_id} requested {self.offering}'

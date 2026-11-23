@@ -36,7 +36,7 @@
         </a>
         {% endif %}
         <a class="resource-tile" href="{% url requests_url %}">
-            <span class="resource-icon">◷</span><span><strong>{% if can_enroll %}Find classes{% else %}Enrollment requests{% endif %}</strong><small>{% if can_enroll %}Browse available classes for your term{% else %}Review and process pending enrollment requests{% endif %}</small></span><span class="resource-arrow">→</span>
+            <span class="resource-icon">◷</span><span><strong>{% if can_enroll %}My enrollment requests{% else %}Enrollment requests{% endif %}</strong><small>{% if can_enroll %}Track your subject request decisions{% else %}Review and process pending enrollment requests{% endif %}</small></span><span class="resource-arrow">→</span>
         </a>
     </div>
 </section>

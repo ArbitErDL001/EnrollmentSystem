@@ -42,11 +42,13 @@ student data are never cached and still require an internet connection.
    `CurriculumEntry` links a subject to a program and year level and records
    prerequisite subjects. Administrators and registrars can add, edit, and
    delete catalog records from **Academics → Programs, Subjects & Curriculum**.
-3. **Enrollment processing** — Students select class offerings for their
-   assigned program and year level at **Enrollments → Select classes**. Before
-   saving, the system validates curriculum eligibility, prerequisite
-   completion, duplicate subjects, schedule conflicts, and seat capacity.
-   Enrollment records retain the class section, term, and status.
+3. **Enrollment processing** — Students submit requests for class offerings
+   within their assigned program and year level at **Enrollments → Select
+   classes**. The assigned instructor reviews and accepts or rejects each
+   request. Acceptance revalidates curriculum eligibility, prerequisite
+   completion, duplicate subjects, schedule conflicts, and seat capacity;
+   approved requests create enrollment records and refresh the student's
+   assessment.
 4. **Assessment and payments** — An assessment is created/refreshed when a
    student enrolls. Tuition is enrolled units multiplied by the per-unit rate,
    plus registration and technology fees. The default policy is 1,000 per unit,
@@ -54,7 +56,9 @@ student data are never cached and still require an internet connection.
    policy in Django admin. The assessment page shows each charge, total,
    payments, and balance. Cashiers record payments; the system rejects
    non-positive payments and amounts above the outstanding balance. No external
-   payment gateway is connected.
+   payment gateway is connected. Students can print their balance list or
+   download it as PDF or Excel from **Finance → Fee Assessments**; exported
+   student reports contain only that student's records.
 5. **Class scheduling** — `Room` and `ClassOffering` store rooms, sections,
    term, meeting days, start/end time, instructor, and capacity. Scheduling
    forms reject overlapping bookings for the same room or instructor on shared
@@ -79,6 +83,14 @@ student data are never cached and still require an internet connection.
    Administrators assign roles; users cannot grant themselves privileges.
    Accounts created by the demo seeder have unusable passwords and cannot log
    in.
+
+## In-app workflow notifications
+
+The **Messages** inbox and unread counter provide in-app notifications (not
+email or SMS). Creating an account notifies administrators. Submitting an
+enrollment request notifies the assigned instructor. Accepting it notifies
+registrars and cashiers that the assessment is ready. Recording a payment
+notifies the student with the remaining balance.
 
 ## Forms and sample interfaces
 
@@ -138,9 +150,13 @@ flowchart TD
     E -- Yes --> X
     E -- No --> F{Section has capacity?}
     F -- No --> X
-    F -- Yes --> G[Save enrollment]
-    G --> H[Refresh assessment and balance]
-    H --> I[Show enrollment summary]
+    F -- Yes --> G[Submit enrollment request]
+    G --> H[Assigned instructor reviews request]
+    H --> I{Accept?}
+    I -- No --> J[Mark request rejected]
+    I -- Yes --> K[Revalidate eligibility and capacity]
+    K --> L[Create enrollment]
+    L --> M[Refresh assessment and balance]
 ```
 
 ## Demo data
@@ -151,16 +167,24 @@ After migrations, generate deterministic fictional data with Faker:
 python manage.py seed_demo_data --students 2 --seed 2026
 ```
 
+To remove all existing records and rebuild a clean local test database, use:
+
+```powershell
+python manage.py seed_demo_data --reset --students 6 --seed 2026 --password "DemoPass123!"
+```
+
 The command is repeatable and creates demo programs, subjects, curriculum and
 prerequisites, rooms, class offerings, two Registrar, two Cashier, two
 Instructor, and the requested number of Student accounts, student profiles,
 enrollments, assessments, and sample payments. Faker accounts use
 `example.invalid` addresses and unusable passwords by default. The command
 refuses to overwrite an account using the reserved demo usernames if it does
-not have a demo address. It does not create a demo administrator; create the
-first Admin with `createsuperuser`. For local role demonstrations only, pass
-an explicit shared password, for example `--password "LocalDemoOnly123!"`; do
-not use that option with real or deployed accounts.
+not have a demo address. With `--password`, it also creates the local-only
+`demo.admin` superuser for role testing. Do not use that option with real or
+deployed accounts.
+
+See [TESTING.md](TESTING.md) for demo accounts, expected test scenarios, and
+the end-to-end verification sequence.
 
 ## Verification
 

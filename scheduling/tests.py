@@ -3,6 +3,7 @@ from datetime import time
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.test import TestCase
+from django.urls import reverse
 
 from academics.models import CurriculumEntry, Program, Subject
 
@@ -55,6 +56,36 @@ class ScheduleConflictTests(TestCase):
 
         self.assertFalse(form.is_valid())
         self.assertIn('already booked', str(form.errors))
+
+    def test_prevents_instructor_double_booking_in_a_different_room(self):
+        other_room = Room.objects.create(name='Room B', capacity=30)
+        form = ClassOfferingForm({
+            'curriculum_entry': self.another_entry.pk,
+            'section': 'A',
+            'term': '2026-1',
+            'meeting_days': ['WED'],
+            'start_time': '09:30',
+            'end_time': '10:30',
+            'room': other_room.pk,
+            'instructor': self.instructor.pk,
+            'capacity': 25,
+            'is_active': 'on',
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('already booked', str(form.errors))
+
+    def test_admin_can_view_and_manage_class_offerings(self):
+        administrator = get_user_model().objects.create_superuser(
+            username='administrator',
+            password='test-password',
+        )
+        self.client.force_login(administrator)
+
+        response = self.client.get(reverse('scheduling_classes'))
+
+        self.assertContains(response, self.entry.subject.code)
+        self.assertContains(response, 'Add class offering')
 
     def test_allows_same_time_on_different_day(self):
         other_room = Room.objects.create(name='Room B', capacity=30)

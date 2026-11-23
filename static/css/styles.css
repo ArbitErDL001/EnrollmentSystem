@@ -1244,21 +1244,66 @@ body:not(.admin-dashboard-page) > .app-layout .app-content.container {
     gap: 8px;
 }
 
-.app-content .page-header .report-exports a {
+.app-content .page-header .report-exports a,
+.app-content .page-header .report-exports button {
     min-height: 38px;
     border-color: transparent;
     background: var(--app-accent);
     color: var(--app-on-accent, #fff);
+    font: inherit;
     font-weight: 600;
     transition: filter .15s ease, transform .15s ease;
 }
 
-.app-content .page-header .report-exports a:hover {
+.app-content .page-header .report-exports a:hover,
+.app-content .page-header .report-exports button:hover {
     border-color: transparent;
     background: var(--app-accent);
     color: var(--app-on-accent, #fff);
     filter: brightness(1.12);
     transform: translateY(-1px);
+}
+
+@media print {
+    .app-sidebar,
+    .app-topbar,
+    .app-footer,
+    .finance-export-actions,
+    .table-tools,
+    .table-tools-no-results {
+        display: none !important;
+    }
+
+    .app-layout,
+    .app-shell,
+    .app-content {
+        display: block !important;
+        width: auto !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+        box-shadow: none !important;
+    }
+
+    .app-content .page-header,
+    .app-content .table-card {
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: #fff !important;
+        color: #000 !important;
+        box-shadow: none !important;
+    }
+
+    .app-content table,
+    .app-content th,
+    .app-content td {
+        color: #000 !important;
+    }
+
+    .app-content table tbody tr[hidden] {
+        display: table-row !important;
+    }
 }
 
 .app-content .table-card td form:not(.inline-form) {

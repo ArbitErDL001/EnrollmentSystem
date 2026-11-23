@@ -2,6 +2,7 @@ from datetime import time
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from faker import Faker
@@ -24,12 +25,22 @@ class Command(BaseCommand):
             '--password',
             help='Optional shared password for local role demonstrations; never use on a live system.',
         )
+        parser.add_argument(
+            '--reset',
+            action='store_true',
+            help='Delete all database records before creating the fictional demo dataset.',
+        )
 
-    @transaction.atomic
     def handle(self, *args, **options):
         student_count = options['students']
         if student_count < 1:
             raise CommandError('--students must be at least 1.')
+        if options['reset']:
+            call_command('flush', interactive=False, verbosity=0)
+        with transaction.atomic():
+            self._seed(options, student_count)
+
+    def _seed(self, options, student_count):
         fake = Faker()
         fake.seed_instance(options['seed'])
         user_model = get_user_model()
@@ -37,6 +48,27 @@ class Command(BaseCommand):
             role: Group.objects.get_or_create(name=role)[0]
             for role in ('Student', 'Registrar', 'Cashier', 'Instructor')
         }
+        admin, _ = user_model.objects.get_or_create(
+            username='demo.admin',
+            defaults={
+                'first_name': 'Demo',
+                'last_name': 'Administrator',
+                'email': 'demo.admin@example.invalid',
+                'is_staff': True,
+                'is_superuser': True,
+                'is_active': True,
+            },
+        )
+        if not admin.email.endswith('@example.invalid'):
+            raise CommandError('Cannot seed over existing account demo.admin.')
+        if options['password']:
+            admin.set_password(options['password'])
+        else:
+            admin.set_unusable_password()
+        admin.is_staff = True
+        admin.is_superuser = True
+        admin.is_active = True
+        admin.save()
 
         program_specs = [
             ('BSCS', 'BS Computer Science'),
@@ -159,6 +191,31 @@ class Command(BaseCommand):
             )
             offerings[entry.pk] = offering
 
+        # This alternate section intentionally overlaps the first section's
+        # time. It uses another room and instructor, so the scheduler accepts
+        # it while student enrollment can demonstrate a personal conflict.
+        first_year_entries = [
+            entry for entry in curriculum_entries
+            if entry.program_id == programs[0].pk and entry.year_level == 1
+        ]
+        if len(first_year_entries) >= 2:
+            conflict_entry = first_year_entries[1]
+            first_offering = offerings[first_year_entries[0].pk]
+            ClassOffering.objects.update_or_create(
+                curriculum_entry=conflict_entry,
+                section='B',
+                term=term,
+                defaults={
+                    'meeting_days': first_offering.meeting_days,
+                    'start_time': first_offering.start_time,
+                    'end_time': first_offering.end_time,
+                    'room': rooms[-1],
+                    'instructor': instructors[-1],
+                    'capacity': 35,
+                    'is_active': True,
+                },
+            )
+
         FeePolicy.objects.update_or_create(
             pk=1,
             defaults={
@@ -208,7 +265,13 @@ class Command(BaseCommand):
                     entry for entry in curriculum_entries
                     if entry.program_id == program.pk and entry.year_level == year_level
                 ]
-                for entry in current_entries[:2]:
+                if index == 1:
+                    enrollment_entries = []
+                elif index in (2, 4):
+                    enrollment_entries = current_entries
+                else:
+                    enrollment_entries = current_entries[:2]
+                for entry in enrollment_entries:
                     offering = offerings[entry.pk]
                     enrollment, enrolled = Enrollment.objects.get_or_create(
                         student=profile,
@@ -234,5 +297,5 @@ class Command(BaseCommand):
             f'Demo data ready: {len(programs)} programs, {len(curriculum_entries)} curriculum entries, '
             f'{student_count} student accounts ({created_profiles} newly created profiles), '
             f'{len(offerings)} class offerings. '
-            f'{"Demo password set for local role testing." if options["password"] else "Demo accounts have unusable passwords."}'
+            f'{"Demo admin/staff/student passwords set for local role testing." if options["password"] else "Demo accounts have unusable passwords."}'
         ))

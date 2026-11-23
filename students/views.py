@@ -20,6 +20,7 @@ from .forms import (
     StudentRegistrationForm,
 )
 from .models import DirectMessage, StudentProfile
+from .notifications import notify_new_account
 from .roles import ROLE_NAMES, STAFF_ROLES, has_role, roles_required
 
 User = get_user_model()
@@ -223,13 +224,16 @@ def admissions(request):
             with transaction.atomic():
                 user = form.save()
                 user.groups.add(Group.objects.get(name='Student'))
-                StudentProfile.objects.create(
+                profile = StudentProfile.objects.create(
                     user=user,
                     phone=form.cleaned_data['phone'],
                     address=form.cleaned_data['address'],
                     date_of_birth=form.cleaned_data['date_of_birth'],
                     program=form.cleaned_data['program'],
                     year_level=form.cleaned_data['year_level'],
+                )
+                notify_new_account(
+                    user, 'Student', sender=request.user, student_profile=profile
                 )
             messages.success(request, f'Student account created with username {user.username}.')
             return redirect('student_directory')
@@ -263,7 +267,12 @@ def profile(request):
             return redirect('student_profile')
     else:
         form = StudentProfileForm(instance=student)
-    return render(request, 'form.html', {'title': 'My Student Profile', 'form': form, 'submit_label': 'Save profile'})
+    return render(request, 'form.html', {
+        'title': 'My Student Profile',
+        'form': form,
+        'submit_label': 'Save profile',
+        'student_id': student.student_id if student else None,
+    })
 
 
 @roles_required(*STAFF_MANAGERS)
@@ -308,8 +317,12 @@ def add_user(request):
                 user.is_staff = role in STAFF_ROLES
                 user.save()
                 user.groups.set([Group.objects.get(name=role)])
+                profile = None
                 if role == 'Student':
-                    StudentProfile.objects.get_or_create(user=user)
+                    profile, _ = StudentProfile.objects.get_or_create(user=user)
+                notify_new_account(
+                    user, role, sender=request.user, student_profile=profile
+                )
             messages.success(request, f'{role} account created.')
             return redirect('user_management')
     else:

@@ -7,6 +7,7 @@
 </section>
 <form class="table-card" method="post" data-confirm="Are you sure you want to {{ submit_label|default:'save'|lower }}?">
     {% csrf_token %}
+    {% if student_id %}<p><strong>Student ID:</strong> {{ student_id }}</p>{% endif %}
     {{ form.non_field_errors }}
     {% if form.password1 %}
     {% for field in form %}

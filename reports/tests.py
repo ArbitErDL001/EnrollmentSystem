@@ -86,6 +86,34 @@ class ReportExportTests(TestCase):
         self.assertContains(response, self.student.student_id)
         self.assertContains(response, 'Records available to your account')
 
+    def test_students_can_export_only_their_own_financial_balances(self):
+        other_user = get_user_model().objects.create_user(username='other-finance-student')
+        other_student = StudentProfile.objects.create(user=other_user)
+        Assessment.objects.create(
+            student=other_student,
+            term='2026-1',
+            units=1,
+            tuition_per_unit=1000,
+            tuition=1000,
+            registration_fee=500,
+            technology_fee=250,
+        )
+        self.client.force_login(self.student.user)
+
+        response = self.client.get(reverse('report_export', args=('collection', 'xlsx')))
+
+        self.assertEqual(response.status_code, 200)
+        worksheet = load_workbook(BytesIO(response.content), read_only=True).active
+        self.assertEqual(worksheet['A2'].value, self.student.student_id)
+        self.assertEqual(worksheet['F2'].value, '3750.00')
+        exported_values = {
+            cell.value
+            for row in worksheet.iter_rows()
+            for cell in row
+            if isinstance(cell.value, str)
+        }
+        self.assertNotIn(other_student.student_id, exported_values)
+
     def test_student_enrollment_report_is_scoped_to_their_records(self):
         other_user = get_user_model().objects.create_user(username='other-student', first_name='Other')
         other_student = StudentProfile.objects.create(user=other_user)

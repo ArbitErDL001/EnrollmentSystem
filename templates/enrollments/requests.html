@@ -4,33 +4,43 @@
 <section class="page-header">
     <p class="eyebrow">Enrollments</p>
     <h1>{{ title }}</h1>
-    <p>Review enrollment requests that still need a decision.</p>
+    <p>{% if is_student %}Track the status of your subject enrollment requests.{% else %}Review requests for classes assigned to you and record a decision.{% endif %}</p>
 </section>
 
-<p><a href="{% url 'enrollments_home' %}">Back to enrollment dashboard</a></p>
+<p><a href="{% url 'enrollments_home' %}">Back to enrollment dashboard</a>{% if is_student %} | <a href="{% url 'enrollment_select' %}">Select classes</a>{% endif %}</p>
 
-{% if requests %}
+{% if enrollment_requests %}
 <table>
     <thead>
         <tr>
-            <th>Student</th>
-            <th>Requested course</th>
+            {% if not is_student %}<th>Student</th>{% endif %}
+            <th>Requested class</th>
             <th>Submitted</th>
             <th>Status</th>
+            {% if can_decide %}<th>Decision</th>{% endif %}
         </tr>
     </thead>
     <tbody>
-        {% for enrollment_request in requests %}
+        {% for enrollment_request in enrollment_requests %}
         <tr>
-            <td>{{ enrollment_request.student }}</td>
-            <td>{{ enrollment_request.course }}</td>
-            <td>{{ enrollment_request.submitted }}</td>
-            <td>{{ enrollment_request.status }}</td>
+            {% if not is_student %}<td>{{ enrollment_request.student.user.get_full_name|default:enrollment_request.student.user.username }} ({{ enrollment_request.student.student_id }})</td>{% endif %}
+            <td>{{ enrollment_request.offering.curriculum_entry.subject.code }} - {{ enrollment_request.offering.curriculum_entry.subject.name }}, Section {{ enrollment_request.offering.section }} ({{ enrollment_request.offering.term }})</td>
+            <td>{{ enrollment_request.submitted_at }}</td>
+            <td>{{ enrollment_request.get_status_display }}</td>
+            {% if can_decide %}<td>
+                {% if enrollment_request.status == 'pending' %}
+                <form method="post" action="{% url 'enrollment_request_decision' enrollment_request.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" name="decision" value="accept">Accept</button>
+                    <button type="submit" name="decision" value="reject">Reject</button>
+                </form>
+                {% else %}{{ enrollment_request.decided_by|default:"-" }}{% endif %}
+            </td>{% endif %}
         </tr>
         {% endfor %}
     </tbody>
 </table>
 {% else %}
-<p>There are no pending enrollment requests.</p>
+<p>There are no enrollment requests to show.</p>
 {% endif %}
 {% endblock %}

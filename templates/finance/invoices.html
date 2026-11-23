@@ -5,6 +5,11 @@
     <p class="eyebrow">Finance</p>
     <h1>{{ title }}</h1>
     <p>Assessment forms show tuition, fees, payments, and current balances.</p>
+    <div class="report-exports finance-export-actions" aria-label="Print or export balances">
+        <button type="button" onclick="window.print()">Print balances</button>
+        <a href="{% url 'report_export' 'collection' 'pdf' %}">Download PDF</a>
+        <a href="{% url 'report_export' 'collection' 'xlsx' %}">Download Excel</a>
+    </div>
 </section>
 <div class="table-card">
     <table>

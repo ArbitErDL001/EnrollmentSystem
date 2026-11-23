@@ -21,7 +21,7 @@ STAFF_ROLES = {
 
 def has_role(user, *roles):
     if user.is_superuser:
-        return True
+        return 'Admin' in roles
     return user.groups.filter(name__in=roles).exists()
 
 

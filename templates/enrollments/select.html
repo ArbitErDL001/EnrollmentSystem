@@ -4,7 +4,7 @@
 <section class="page-header">
     <p class="eyebrow">Enrollment</p>
     <h1>{{ title }}</h1>
-    <p>Select classes offered for your program and year level. Prerequisites, duplicate subjects, seat capacity, and time conflicts are checked before enrollment.</p>
+    <p>Request classes offered for your program and year level. Prerequisites, duplicate subjects, seat capacity, and time conflicts are checked when requesting and rechecked when the instructor accepts.</p>
 </section>
 <form method="get" class="table-card">
     <label for="term">Semester / term</label>
@@ -24,7 +24,7 @@
                 <td>{{ offering.meeting_days }} {{ offering.start_time }}-{{ offering.end_time }}</td>
                 <td>{{ offering.room }}</td><td>{{ offering.instructor.get_full_name|default:offering.instructor.username }}</td>
                 <td>{{ offering.enrollments.count }}/{{ offering.capacity }}</td>
-                <td><form method="post">{% csrf_token %}<input type="hidden" name="term" value="{{ term }}"><input type="hidden" name="offering" value="{{ offering.pk }}"><button type="submit">Enroll</button></form></td>
+                <td><form method="post">{% csrf_token %}<input type="hidden" name="term" value="{{ term }}"><input type="hidden" name="offering" value="{{ offering.pk }}"><button type="submit">Request enrollment</button></form></td>
             </tr>
         {% empty %}<tr><td colspan="8">No open class offerings for this term and curriculum.</td></tr>{% endfor %}
         </tbody>
