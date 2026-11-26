@@ -9,7 +9,7 @@
     <link rel="manifest" href="{% static 'site.webmanifest' %}">
     <link rel="icon" href="{% static 'images/psu-app-icon.svg' %}" type="image/svg+xml">
     <script src="{% static 'js/theme-toggle.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=20261115-active-theme-fix">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=20261124-square-dashboards">
     {% block extra_css %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}" data-role="{{ user_roles.0|default:'Student' }}" data-system-admin="{{ is_system_admin|yesno:'true,false' }}">

@@ -118,9 +118,12 @@ def enroll(request):
                 ).exists():
                     raise ValidationError('You already have a pending request for this subject.')
                 Enrollment(student=student, offering=offering).full_clean()
-                EnrollmentRequest.objects.create(student=student, offering=offering)
+                enrollment_request = EnrollmentRequest.objects.create(
+                    student=student,
+                    offering=offering,
+                )
                 subject = offering.curriculum_entry.subject
-                notify_user(
+                notification = notify_user(
                     offering.instructor,
                     sender=request.user,
                     subject=f'Enrollment request: {subject.code} {offering.section}',
@@ -131,6 +134,8 @@ def enroll(request):
                         'Open Enrollments → Enrollment requests to review it.'
                     ),
                 )
+                enrollment_request.notification_message = notification
+                enrollment_request.save(update_fields=('notification_message',))
         except ValidationError as error:
             messages.error(request, ' '.join(error.messages))
         except IntegrityError:
@@ -206,6 +211,16 @@ def decide_request(request, request_id):
             student = enrollment_request.student
             subject = offering.curriculum_entry.subject
             if decision == 'accept':
+                notify_user(
+                    student.user,
+                    sender=request.user,
+                    subject=f'Enrollment approved: {subject.code}',
+                    body=(
+                        f'Your request for {subject.code}, section {offering.section}, '
+                        f'for {offering.term} was accepted. Open Enrollment Records '
+                        'to view your enrolled subjects.'
+                    ),
+                )
                 notify_role_members(
                     ('Registrar', 'Cashier'),
                     sender=request.user,

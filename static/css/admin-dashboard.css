@@ -936,3 +936,12 @@ body.admin-dashboard-page .admin-dashboard * {
         flex-direction: column;
     }
 }
+
+.admin-dashboard :where(*, *::before, *::after) {
+    border-radius: 0 !important;
+}
+
+.admin-dashboard .admin-metric-donut,
+.admin-dashboard .admin-metric-donut::before {
+    border-radius: 50% !important;
+}

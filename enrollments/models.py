@@ -81,6 +81,10 @@ class EnrollmentRequest(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='decided_enrollment_requests',
     )
+    notification_message = models.OneToOneField(
+        'students.DirectMessage', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='enrollment_request',
+    )
 
     class Meta:
         ordering = ('-submitted_at',)

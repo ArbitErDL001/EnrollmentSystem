@@ -24,8 +24,16 @@
         <tbody>
         {% for direct_message in direct_messages %}
             <tr class="{% if folder == 'inbox' and not direct_message.read_at %}message-unread{% endif %}">
-                <td>{% if folder == 'sent' %}{{ direct_message.recipient.get_full_name|default:direct_message.recipient.username }}{% else %}{{ direct_message.sender.get_full_name|default:direct_message.sender.username|default:"Deleted account" }}{% endif %}</td>
-                <td><a href="{% url 'message_detail' direct_message.pk %}">{{ direct_message.subject }}</a></td>
+                <td>{% if folder == 'sent' %}{{ direct_message.recipient.get_full_name|default:direct_message.recipient.username }}{% elif direct_message.sender %}{{ direct_message.sender.get_full_name|default:direct_message.sender.username }}{% else %}Deleted account{% endif %}</td>
+                <td>
+                    <a href="{% url 'message_detail' direct_message.pk %}">{{ direct_message.subject }}</a>
+                    {% if is_instructor and direct_message.enrollment_request.status == 'pending' and direct_message.enrollment_request.offering.instructor_id == user.pk %}
+                    <form method="post" action="{% url 'enrollment_request_decision' direct_message.enrollment_request.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" name="decision" value="accept">Accept enrollment</button>
+                    </form>
+                    {% endif %}
+                </td>
                 <td>{{ direct_message.created_at|date:"M j, Y, g:i a" }}</td>
                 <td>{% if folder == 'sent' %}Sent{% elif direct_message.read_at %}Read{% else %}Unread{% endif %}</td>
             </tr>

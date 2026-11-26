@@ -37,7 +37,12 @@ def message_inbox(request):
     return render(request, 'students/messages/inbox.html', {
         'title': 'Messages',
         'folder': folder,
-        'direct_messages': direct_messages.select_related('sender', 'recipient'),
+        'direct_messages': direct_messages.select_related(
+            'sender',
+            'recipient',
+            'enrollment_request__offering__instructor',
+        ),
+        'is_instructor': has_role(request.user, 'Instructor'),
     })
 
 
@@ -72,9 +77,21 @@ def message_detail(request, message_id):
     if direct_message.recipient_id == request.user.pk and direct_message.read_at is None:
         direct_message.read_at = timezone.now()
         direct_message.save(update_fields=('read_at',))
+    from enrollments.models import EnrollmentRequest
+
+    enrollment_request = EnrollmentRequest.objects.select_related(
+        'offering__instructor'
+    ).filter(notification_message=direct_message).first()
     return render(request, 'students/messages/detail.html', {
         'title': direct_message.subject,
         'direct_message': direct_message,
+        'enrollment_request': enrollment_request,
+        'can_accept_enrollment_request': (
+            enrollment_request is not None
+            and enrollment_request.status == 'pending'
+            and enrollment_request.offering.instructor_id == request.user.pk
+            and has_role(request.user, 'Instructor')
+        ),
     })
 
 

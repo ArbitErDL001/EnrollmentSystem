@@ -486,6 +486,26 @@ class DirectMessageTests(TestCase):
         read_inbox_response = recipient_client.get(reverse('message_inbox'))
         self.assertContains(read_inbox_response, 'aria-label="Messages, 0 unread"')
 
+    def test_messages_from_deleted_senders_render_in_inbox_and_detail(self):
+        direct_message = DirectMessage.objects.create(
+            sender=None,
+            recipient=self.sender,
+            subject='Account notice',
+            body='This message remains available after its sender is deleted.',
+        )
+
+        inbox_response = self.client.get(reverse('message_inbox'))
+        self.assertContains(inbox_response, 'Deleted account')
+
+        detail_response = self.client.get(
+            reverse('message_detail', args=(direct_message.pk,))
+        )
+        self.assertContains(detail_response, 'Deleted account')
+        self.assertContains(
+            detail_response,
+            'This message remains available after its sender is deleted.',
+        )
+
     def test_messages_are_private_and_recipients_cannot_message_themselves(self):
         direct_message = DirectMessage.objects.create(
             sender=self.sender,

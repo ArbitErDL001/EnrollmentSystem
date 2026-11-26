@@ -1606,3 +1606,12 @@ html[data-theme="light"] .app-messages .error {
         flex-direction: column;
     }
 }
+
+.app-layout .app-content :where(*, *::before, *::after) {
+    border-radius: 0 !important;
+}
+
+.app-layout .app-content .stat-card-donut,
+.app-layout .app-content .stat-card-donut::before {
+    border-radius: 50% !important;
+}

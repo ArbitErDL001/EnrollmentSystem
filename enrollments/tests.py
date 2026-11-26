@@ -72,7 +72,20 @@ class EnrollmentProcessingTests(TestCase):
         instructor_client.force_login(self.offering.instructor)
         instructor_inbox = instructor_client.get(reverse('message_inbox'))
         self.assertContains(instructor_inbox, instructor_notification.subject)
+        self.assertContains(instructor_inbox, 'Accept enrollment')
+        self.assertContains(
+            instructor_inbox,
+            reverse('enrollment_request_decision', args=(enrollment_request.pk,)),
+        )
         self.assertContains(instructor_inbox, 'aria-label="Messages, 1 unread"')
+        instructor_message = instructor_client.get(
+            reverse('message_detail', args=(instructor_notification.pk,))
+        )
+        self.assertContains(instructor_message, 'Accept enrollment')
+        self.assertNotContains(
+            self.client.get(reverse('message_detail', args=(instructor_notification.pk,))),
+            'Accept enrollment',
+        )
         response = instructor_client.post(
             reverse('enrollment_request_decision', args=(enrollment_request.pk,)),
             {'decision': 'accept'},
@@ -83,6 +96,10 @@ class EnrollmentProcessingTests(TestCase):
         enrollment_request.refresh_from_db()
         self.assertEqual(enrollment_request.status, 'accepted')
         self.assertEqual(enrollment_request.decided_by, self.offering.instructor)
+        self.assertNotContains(
+            instructor_client.get(reverse('message_detail', args=(instructor_notification.pk,))),
+            'Accept enrollment',
+        )
         self.assertSetEqual(
             set(DirectMessage.objects.filter(
                 subject=f'Enrollment approved: {self.student.student_id}'
@@ -100,6 +117,13 @@ class EnrollmentProcessingTests(TestCase):
         self.assertEqual(assessment.units, 3)
         self.assertEqual(assessment.tuition, 3000)
         self.assertEqual(assessment.total, 3750)
+        student_records = self.client.get(reverse('enrollments_records'))
+        self.assertContains(student_records, 'CS101')
+        self.assertContains(student_records, 'Enrolled')
+        self.assertContains(
+            self.client.get(reverse('message_inbox')),
+            'Enrollment approved: CS101',
+        )
         self.assertContains(self.client.get(reverse('enrollments_requests')), 'Accepted')
 
     def test_enrollment_rejects_schedule_conflicts(self):

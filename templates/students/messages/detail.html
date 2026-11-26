@@ -7,11 +7,17 @@
     <p><a href="{% url 'message_inbox' %}">← Back to inbox</a></p>
 </section>
 <article class="table-card message-detail">
-    <p><strong>From:</strong> {{ direct_message.sender.get_full_name|default:direct_message.sender.username|default:"Deleted account" }}</p>
+    <p><strong>From:</strong> {% if direct_message.sender %}{{ direct_message.sender.get_full_name|default:direct_message.sender.username }}{% else %}Deleted account{% endif %}</p>
     <p><strong>To:</strong> {{ direct_message.recipient.get_full_name|default:direct_message.recipient.username }}</p>
     <p><strong>Sent:</strong> {{ direct_message.created_at|date:"M j, Y, g:i a" }}</p>
     <hr>
     <div class="message-body">{{ direct_message.body|linebreaks }}</div>
+    {% if can_accept_enrollment_request %}
+    <form method="post" action="{% url 'enrollment_request_decision' enrollment_request.pk %}">
+        {% csrf_token %}
+        <button type="submit" name="decision" value="accept">Accept enrollment</button>
+    </form>
+    {% endif %}
     {% if direct_message.recipient_id == user.pk and direct_message.sender %}
     <a class="message-reply" href="{% url 'message_compose' %}?to={{ direct_message.sender_id }}">Reply</a>
     {% endif %}
